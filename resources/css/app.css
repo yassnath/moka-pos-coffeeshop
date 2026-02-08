@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    body {
+        @apply min-h-screen bg-moka-bg font-sans text-moka-ink antialiased;
+        background-image:
+            radial-gradient(circle at 12% 8%, rgba(200, 159, 122, 0.24), transparent 34%),
+            radial-gradient(circle at 88% 22%, rgba(111, 78, 55, 0.14), transparent 30%),
+            linear-gradient(180deg, #fffdfb 0%, #faf7f2 55%, #f7f2ea 100%);
+    }
+
+    ::selection {
+        background: rgba(200, 159, 122, 0.35);
+        color: #2a2018;
+    }
+}
+
+@layer components {
+    .page-shell {
+        @apply relative flex min-h-screen flex-col overflow-x-hidden;
+    }
+
+    .bg-blob {
+        @apply hidden;
+    }
+
+    .glass-card {
+        @apply rounded-2xl border border-moka-line/80 bg-white shadow-card;
+    }
+
+    .soft-card {
+        @apply rounded-2xl border border-moka-line/90 bg-white shadow-card;
+    }
+
+    .moka-btn {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-transparent bg-moka-primary px-5 py-2.5 text-sm font-semibold tracking-wide text-white shadow-sm transition duration-200 hover:bg-[#624631] focus:outline-none focus:ring-2 focus:ring-moka-primary/30 disabled:cursor-not-allowed disabled:opacity-60;
+        background-image: none;
+    }
+
+    .moka-btn-secondary {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-moka-line bg-white px-5 py-2.5 text-sm font-semibold text-moka-ink transition duration-200 hover:bg-moka-soft focus:outline-none focus:ring-2 focus:ring-moka-primary/20 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .moka-btn-success {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-transparent bg-moka-success px-5 py-2.5 text-sm font-semibold tracking-wide text-white shadow-sm transition duration-200 hover:bg-[#264b42] focus:outline-none focus:ring-2 focus:ring-moka-success/30 disabled:cursor-not-allowed disabled:opacity-60;
+        background-image: none;
+    }
+
+    .moka-btn-danger {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-600 transition duration-200 hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-300/40 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .moka-input {
+        @apply h-11 w-full rounded-xl border-moka-line bg-white/95 text-sm text-moka-ink placeholder:text-moka-muted/70 focus:border-moka-primary focus:ring-2 focus:ring-moka-primary/20;
+    }
+
+    .moka-select {
+        @apply h-11 w-full rounded-xl border-moka-line bg-white/95 pr-9 text-sm text-moka-ink focus:border-moka-primary focus:ring-2 focus:ring-moka-primary/20;
+    }
+
+    .moka-label {
+        @apply mb-1.5 block text-sm font-semibold text-moka-ink;
+    }
+
+    .moka-helper {
+        @apply text-xs text-moka-muted;
+    }
+
+    .moka-chip {
+        @apply inline-flex min-h-11 items-center justify-center rounded-full border border-moka-line px-4 text-sm font-semibold text-moka-muted transition duration-200 hover:border-moka-primary/30 hover:bg-white;
+    }
+
+    .moka-chip-active {
+        @apply border-transparent bg-moka-primary text-white shadow-sm;
+        background-image: none;
+    }
+
+    .moka-table {
+        @apply min-w-full divide-y divide-moka-line;
+    }
+
+    .moka-table thead th {
+        @apply bg-[#f7f1e8] px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-moka-muted;
+    }
+
+    .moka-table tbody td {
+        @apply px-4 py-3 text-center text-sm text-moka-ink;
+    }
+
+    .moka-table tbody tr {
+        @apply transition hover:bg-moka-soft/55;
+    }
+
+    .text-money {
+        font-variant-numeric: tabular-nums;
+    }
+
+    .moka-modal-overlay {
+        background: rgba(42, 32, 24, 0.5);
+    }
+
+    .moka-modal-shell {
+        @apply relative w-full overflow-hidden rounded-[28px] border-4 border-moka-primary bg-white/95 backdrop-blur-sm;
+        box-shadow:
+            inset 0 0 0 1px rgba(111, 78, 55, 0.28),
+            0 40px 100px -46px rgba(66, 39, 22, 0.55),
+            0 30px 60px -40px rgba(111, 78, 55, 0.5);
+    }
+
+    .moka-modal-shell::before {
+        content: none;
+    }
+
+    .moka-modal-content {
+        @apply relative z-[3] p-5 sm:p-6;
+    }
+
+    .moka-modal-header {
+        @apply flex items-start justify-between gap-3 border-b border-moka-line/85 pb-3.5;
+    }
+
+    .moka-modal-title {
+        @apply font-display text-xl font-bold text-moka-ink;
+    }
+
+    .moka-modal-subtitle {
+        @apply mt-1 text-sm text-moka-muted;
+    }
+
+    .moka-modal-close {
+        @apply inline-flex h-9 w-9 items-center justify-center rounded-full border border-moka-line bg-white text-moka-muted transition duration-200 hover:border-moka-primary/35 hover:text-moka-ink focus:outline-none focus:ring-2 focus:ring-moka-primary/25;
+    }
+
+    .moka-modal-footer {
+        @apply mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end;
+    }
+
+    .moka-modal-pane {
+        @apply rounded-2xl border border-moka-line bg-moka-soft/35 px-4 py-3;
+    }
+
+    .moka-modal-alert {
+        @apply mt-4 rounded-2xl border px-4 py-3 text-sm;
+    }
+}
