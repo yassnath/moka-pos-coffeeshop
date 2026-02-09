@@ -14,7 +14,7 @@ class CashierController extends Controller
     public function index(): View
     {
         $cashiers = User::query()
-            ->where('role', User::ROLE_KASIR)
+            ->whereIn('role', [User::ROLE_KASIR, User::ROLE_WAITER])
             ->orderBy('name')
             ->paginate(15);
 
@@ -34,22 +34,23 @@ class CashierController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'role' => ['required', 'in:'.User::ROLE_KASIR.','.User::ROLE_WAITER],
         ]);
 
         User::query()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => User::ROLE_KASIR,
+            'role' => $validated['role'],
             'email_verified_at' => now(),
         ]);
 
-        return redirect()->route('admin.cashiers.index')->with('success', 'Berhasil menyimpan kasir.');
+        return redirect()->route('admin.cashiers.index')->with('success', 'Berhasil menyimpan staff.');
     }
 
     public function edit(User $cashier): View
     {
-        $this->ensureCashier($cashier);
+        $this->ensureStaff($cashier);
 
         return view('admin.cashiers.edit', [
             'cashier' => $cashier,
@@ -58,17 +59,19 @@ class CashierController extends Controller
 
     public function update(Request $request, User $cashier): RedirectResponse
     {
-        $this->ensureCashier($cashier);
+        $this->ensureStaff($cashier);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$cashier->id],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
+            'role' => ['required', 'in:'.User::ROLE_KASIR.','.User::ROLE_WAITER],
         ]);
 
         $cashier->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'role' => $validated['role'],
         ]);
 
         if (! empty($validated['password'])) {
@@ -77,20 +80,20 @@ class CashierController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.cashiers.index')->with('success', 'Berhasil menyimpan kasir.');
+        return redirect()->route('admin.cashiers.index')->with('success', 'Berhasil menyimpan staff.');
     }
 
     public function destroy(User $cashier): RedirectResponse
     {
-        $this->ensureCashier($cashier);
+        $this->ensureStaff($cashier);
 
         $cashier->delete();
 
-        return redirect()->route('admin.cashiers.index')->with('success', 'Kasir berhasil dihapus.');
+        return redirect()->route('admin.cashiers.index')->with('success', 'Staff berhasil dihapus.');
     }
 
-    private function ensureCashier(User $user): void
+    private function ensureStaff(User $user): void
     {
-        abort_unless($user->role === User::ROLE_KASIR, 404);
+        abort_unless(in_array($user->role, [User::ROLE_KASIR, User::ROLE_WAITER], true), 404);
     }
 }

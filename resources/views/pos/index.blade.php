@@ -313,14 +313,23 @@
                                 <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="saveOpenBill()">
                                     <span x-text="editingOpenBillId ? 'Update Open Bill' : 'Simpan Open Bill'"></span>
                                 </button>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting || editingOpenBillId" @click="cancelBillOpen = true">
-                                        Cancel Order
-                                    </button>
-                                    <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="openPayment()">
-                                        Continue
-                                    </button>
-                                </div>
+                                <template x-if="!editingOpenBillId">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="cancelBillOpen = true">
+                                            Cancel Order
+                                        </button>
+                                        <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="openPayment()">
+                                            Continue
+                                        </button>
+                                    </div>
+                                </template>
+                                <template x-if="editingOpenBillId">
+                                    <div class="grid grid-cols-1">
+                                        <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="openPayment()">
+                                            Continue
+                                        </button>
+                                    </div>
+                                </template>
                             @else
                                 <div class="grid grid-cols-2 gap-2">
                                     <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting || editingOpenBillId" @click="cancelBillOpen = true">

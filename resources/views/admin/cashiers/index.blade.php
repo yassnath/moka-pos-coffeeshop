@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <h1 class="font-display text-2xl font-bold text-moka-ink">Kelola Kasir</h1>
-            <p class="text-sm text-moka-muted">Tambah, ubah, dan hapus akun kasir.</p>
+            <h1 class="font-display text-2xl font-bold text-moka-ink">Kelola Staff</h1>
+            <p class="text-sm text-moka-muted">Tambah, ubah, dan hapus akun kasir & waiter.</p>
         </div>
-        <a href="{{ route('admin.cashiers.create') }}" class="moka-btn">Tambah Kasir</a>
+        <a href="{{ route('admin.cashiers.create') }}" class="moka-btn">Tambah Staff</a>
     </x-slot>
 
     <div x-data="{
@@ -28,6 +28,7 @@
                     <thead>
                         <tr>
                             <th>Nama</th>
+                            <th>Role</th>
                             <th>Email</th>
                             <th>Dibuat</th>
                             <th class="text-center">Aksi</th>
@@ -35,8 +36,13 @@
                     </thead>
                     <tbody>
                         @forelse ($cashiers as $cashier)
+                            @php
+                                $roleLabel = $cashier->role === \App\Models\User::ROLE_WAITER ? 'Waiter' : 'Kasir';
+                                $roleVariant = $cashier->role === \App\Models\User::ROLE_WAITER ? 'warning' : 'primary';
+                            @endphp
                             <tr>
                                 <td class="font-semibold">{{ $cashier->name }}</td>
+                                <td><x-ui.badge :variant="$roleVariant">{{ $roleLabel }}</x-ui.badge></td>
                                 <td class="text-moka-muted">{{ $cashier->email }}</td>
                                 <td>{{ optional($cashier->created_at)->format('d M Y') }}</td>
                                 <td class="text-center">
@@ -50,7 +56,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-10 text-center text-sm text-moka-muted">Belum ada kasir.</td>
+                                <td colspan="5" class="py-10 text-center text-sm text-moka-muted">Belum ada staff.</td>
                             </tr>
                         @endforelse
                     </tbody>

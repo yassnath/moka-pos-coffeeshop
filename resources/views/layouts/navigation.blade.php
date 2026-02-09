@@ -19,7 +19,7 @@
                 <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kategori</a>
                 <a href="{{ route('admin.addons.index') }}" class="{{ request()->routeIs('admin.addons.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Add-on</a>
                 <a href="{{ route('admin.payment-methods.index') }}" class="{{ request()->routeIs('admin.payment-methods.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Metode Bayar</a>
-                <a href="{{ route('admin.cashiers.index') }}" class="{{ request()->routeIs('admin.cashiers.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kasir</a>
+                <a href="{{ route('admin.cashiers.index') }}" class="{{ request()->routeIs('admin.cashiers.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Staff</a>
             @elseif($user?->isWaiter())
                 <a href="{{ route('waiter.index') }}" class="{{ request()->routeIs('waiter.index') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Order</a>
                 <a href="{{ route('waiter.history') }}" class="{{ request()->routeIs('waiter.history') || request()->routeIs('waiter.show') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Riwayat</a>
@@ -52,7 +52,7 @@
                 <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kategori</a>
                 <a href="{{ route('admin.addons.index') }}" class="{{ request()->routeIs('admin.addons.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Add-on</a>
                 <a href="{{ route('admin.payment-methods.index') }}" class="{{ request()->routeIs('admin.payment-methods.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Metode Bayar</a>
-                <a href="{{ route('admin.cashiers.index') }}" class="{{ request()->routeIs('admin.cashiers.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kasir</a>
+                <a href="{{ route('admin.cashiers.index') }}" class="{{ request()->routeIs('admin.cashiers.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Staff</a>
             @elseif($user?->isWaiter())
                 <a href="{{ route('waiter.index') }}" class="{{ request()->routeIs('waiter.index') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Order</a>
                 <a href="{{ route('waiter.history') }}" class="{{ request()->routeIs('waiter.history') || request()->routeIs('waiter.show') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Riwayat</a>
