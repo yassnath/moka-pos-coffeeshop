@@ -102,7 +102,7 @@
         </x-ui.card>
     </div>
 
-    <x-ui.card class="mt-4" padding="p-0 overflow-hidden">
+    <x-ui.card class="mt-4" padding="p-0 overflow-hidden" x-data="{ cancelOpen: false, cancelTarget: null }">
         <div class="border-b border-moka-line px-5 py-4">
             <h2 class="font-display text-lg font-bold text-moka-ink">Daftar Transaksi</h2>
         </div>
@@ -126,15 +126,21 @@
                         @php
                             $orderCost = (float) $order->items->sum(fn ($item) => (float) $item->resolved_line_cost_total);
                             $orderProfit = (float) $order->total - $orderCost;
+                            $statusVariant = $order->status === 'PAID'
+                                ? 'success'
+                                : (in_array($order->status, ['OPEN_BILL', 'WAITING'], true) ? 'warning' : 'danger');
+                            $isDraft = in_array($order->status, ['OPEN_BILL', 'WAITING'], true);
                         @endphp
                         <tr>
-                            <td class="font-semibold">{{ $order->status === 'OPEN_BILL' ? 'Open Bill #'.$order->id : $order->invoice_no }}</td>
+                            <td class="font-semibold">
+                                {{ $order->status === 'OPEN_BILL' ? 'Open Bill #'.$order->id : ($order->status === 'WAITING' ? 'Pesanan #'.$order->id : $order->invoice_no) }}
+                            </td>
                             <td>{{ optional($order->ordered_at)->format('d M Y H:i') }}</td>
                             <td>{{ $order->user?->name ?? '-' }}</td>
                             <td>
-                                <x-ui.badge :variant="$order->status === 'PAID' ? 'success' : ($order->status === 'OPEN_BILL' ? 'warning' : 'danger')">{{ $order->status }}</x-ui.badge>
+                                <x-ui.badge :variant="$statusVariant">{{ $order->status }}</x-ui.badge>
                             </td>
-                            <td>{{ $order->status === 'OPEN_BILL' ? '-' : $order->payment_method }}</td>
+                            <td>{{ $isDraft ? '-' : $order->payment_method }}</td>
                             <td class="text-money">Rp {{ number_format((float) $order->total, 0, ',', '.') }}</td>
                             <td class="text-money">Rp {{ number_format($orderCost, 0, ',', '.') }}</td>
                             <td class="text-money">Rp {{ number_format($orderProfit, 0, ',', '.') }}</td>
@@ -163,6 +169,19 @@
                                             </svg>
                                         </a>
                                     @endif
+                                    @can('void', $order)
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:border-red-300 hover:bg-red-50"
+                                            title="Batalkan"
+                                            aria-label="Batalkan"
+                                            @click="cancelTarget = '{{ route('admin.orders.void', $order) }}'; cancelOpen = true"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M6 6l12 12M18 6l-12 12" stroke-width="2" stroke-linecap="round"></path>
+                                            </svg>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -174,6 +193,29 @@
                 </tbody>
             </table>
         </div>
+
+        <form x-ref="cancelForm" method="POST" :action="cancelTarget" class="hidden">
+            @csrf
+        </form>
+        <x-ui.modal name="cancelOpen" maxWidth="md">
+            <div class="moka-modal-content">
+                <div class="moka-modal-header">
+                    <div>
+                        <h3 class="moka-modal-title">Batalkan Pesanan</h3>
+                        <p class="moka-modal-subtitle">Batalkan pesanan ini sebelum diproses?</p>
+                    </div>
+                    <button type="button" class="moka-modal-close" @click="cancelOpen = false" aria-label="Tutup popup">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="moka-modal-footer">
+                    <button type="button" class="moka-btn-secondary" @click="cancelOpen = false">Tidak</button>
+                    <button type="button" class="moka-btn-danger" @click="$refs.cancelForm.submit()">Ya, Batalkan</button>
+                </div>
+            </div>
+        </x-ui.modal>
     </x-ui.card>
 
     <div class="mt-4">

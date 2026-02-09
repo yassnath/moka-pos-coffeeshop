@@ -11,7 +11,7 @@
             @include('profile.partials.update-profile-information-form')
         </x-ui.card>
 
-        @if (!auth()->user()->isKasir())
+        @if (auth()->user()->isAdmin())
             <x-ui.card>
                 @include('profile.partials.update-password-form')
             </x-ui.card>

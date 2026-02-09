@@ -40,9 +40,10 @@ class OrderController extends Controller
 
             $order->update([
                 'status' => 'VOID',
+                'payment_method' => 'CANCELED',
             ]);
         });
 
-        return back()->with('success', 'Transaksi berhasil di-void.');
+        return back()->with('success', 'Pesanan berhasil dibatalkan.');
     }
 }

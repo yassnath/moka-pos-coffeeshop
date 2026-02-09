@@ -97,9 +97,9 @@ class ReportController extends Controller
             ])
             ->where(function ($query) use ($fromDate, $toDate): void {
                 $query->whereBetween('ordered_at', [$fromDate, $toDate])
-                    ->orWhere('status', 'OPEN_BILL');
+                    ->orWhereIn('status', ['OPEN_BILL', 'WAITING']);
             })
-            ->orderByRaw("CASE WHEN status = 'OPEN_BILL' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN status = 'WAITING' THEN 0 WHEN status = 'OPEN_BILL' THEN 1 ELSE 2 END")
             ->orderByDesc('ordered_at')
             ->paginate(20)
             ->withQueryString();
@@ -129,9 +129,9 @@ class ReportController extends Controller
             ])
             ->where(function ($query) use ($fromDate, $toDate): void {
                 $query->whereBetween('ordered_at', [$fromDate, $toDate])
-                    ->orWhere('status', 'OPEN_BILL');
+                    ->orWhereIn('status', ['OPEN_BILL', 'WAITING']);
             })
-            ->orderByRaw("CASE WHEN status = 'OPEN_BILL' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN status = 'WAITING' THEN 0 WHEN status = 'OPEN_BILL' THEN 1 ELSE 2 END")
             ->orderBy('ordered_at')
             ->get();
 
@@ -146,12 +146,14 @@ class ReportController extends Controller
                 $orderCost = (float) $order->items->sum(fn ($item) => (float) $item->resolved_line_cost_total);
                 $orderProfit = (float) $order->total - $orderCost;
 
+                $isDraft = in_array($order->status, ['OPEN_BILL', 'WAITING'], true);
+
                 fputcsv($stream, [
-                    $order->status === 'OPEN_BILL' ? 'Open Bill #'.$order->id : $order->invoice_no,
+                    $order->status === 'OPEN_BILL' ? 'Open Bill #'.$order->id : ($order->status === 'WAITING' ? 'Pesanan #'.$order->id : $order->invoice_no),
                     optional($order->ordered_at)->format('Y-m-d H:i:s'),
                     $order->user?->name,
                     $order->status,
-                    $order->status === 'OPEN_BILL' ? '-' : $order->payment_method,
+                    $isDraft ? '-' : $order->payment_method,
                     $order->total,
                     $orderCost,
                     $orderProfit,

@@ -16,6 +16,8 @@ class User extends Authenticatable
 
     public const ROLE_KASIR = 'kasir';
 
+    public const ROLE_WAITER = 'waiter';
+
     /**
      * @var list<string>
      */
@@ -58,5 +60,10 @@ class User extends Authenticatable
     public function isKasir(): bool
     {
         return $this->role === self::ROLE_KASIR;
+    }
+
+    public function isWaiter(): bool
+    {
+        return $this->role === self::ROLE_WAITER;
     }
 }

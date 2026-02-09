@@ -1,42 +1,13 @@
-<x-app-layout x-data="{ cancelOpen: false }">
+<x-app-layout>
     <x-slot name="header">
         <div>
-            <h1 class="font-display text-2xl font-bold text-moka-ink">Detail Transaksi</h1>
-            <p class="text-sm text-moka-muted">{{ $order->status === 'OPEN_BILL' ? 'Open Bill #'.$order->id : $order->invoice_no }} - {{ optional($order->ordered_at)->format('d M Y H:i') }}</p>
+            <h1 class="font-display text-2xl font-bold text-moka-ink">Detail Pesanan</h1>
+            <p class="text-sm text-moka-muted">
+                {{ $order->status === 'WAITING' ? 'Pesanan #'.$order->id : $order->invoice_no }} - {{ optional($order->ordered_at)->format('d M Y H:i') }}
+            </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            @if($order->status === 'PAID')
-                <a href="{{ route('orders.receipt', $order) }}" class="moka-btn-secondary">Cetak Ulang</a>
-            @endif
-            @can('void', $order)
-                <button type="button" class="moka-btn-secondary border-red-300 text-red-600 hover:bg-red-50" @click="cancelOpen = true">Batalkan</button>
-            @endcan
-        </div>
+        <a href="{{ route('waiter.history') }}" class="moka-btn-secondary">Kembali ke Riwayat</a>
     </x-slot>
-
-    <form x-ref="cancelForm" method="POST" action="{{ route('admin.orders.void', $order) }}" class="hidden">
-        @csrf
-    </form>
-
-    <x-ui.modal name="cancelOpen" maxWidth="md">
-        <div class="moka-modal-content">
-            <div class="moka-modal-header">
-                <div>
-                    <h3 class="moka-modal-title">Batalkan Pesanan</h3>
-                    <p class="moka-modal-subtitle">Batalkan pesanan ini sebelum diproses?</p>
-                </div>
-                <button type="button" class="moka-modal-close" @click="cancelOpen = false" aria-label="Tutup popup">
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="moka-modal-footer">
-                <button type="button" class="moka-btn-secondary" @click="cancelOpen = false">Tidak</button>
-                <button type="button" class="moka-btn-danger" @click="$refs.cancelForm.submit()">Ya, Batalkan</button>
-            </div>
-        </div>
-    </x-ui.modal>
 
     <div class="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
         <x-ui.card padding="p-0 overflow-hidden">
@@ -65,7 +36,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="px-5 py-8 text-center text-sm text-moka-muted">Item transaksi kosong.</p>
+                    <p class="px-5 py-8 text-center text-sm text-moka-muted">Item pesanan kosong.</p>
                 @endforelse
             </div>
         </x-ui.card>
@@ -77,14 +48,18 @@
                     <dd class="font-semibold text-moka-ink">{{ $order->user?->name ?? '-' }}</dd>
                 </div>
                 <div class="flex items-center justify-between">
+                    <dt>Waiter</dt>
+                    <dd class="font-semibold text-moka-ink">{{ $order->waiter?->name ?? '-' }}</dd>
+                </div>
+                <div class="flex items-center justify-between">
                     <dt>Status</dt>
                     <dd>
-                        <x-ui.badge :variant="$order->status === 'PAID' ? 'success' : (in_array($order->status, ['OPEN_BILL', 'WAITING'], true) ? 'warning' : 'danger')">{{ $order->status }}</x-ui.badge>
+                        <x-ui.badge :variant="$order->status === 'PAID' ? 'success' : ($order->status === 'WAITING' ? 'warning' : 'danger')">{{ $order->status }}</x-ui.badge>
                     </dd>
                 </div>
                 <div class="flex items-center justify-between">
                     <dt>Metode Bayar</dt>
-                    <dd class="font-semibold text-moka-ink">{{ in_array($order->status, ['OPEN_BILL', 'WAITING'], true) ? '-' : $order->payment_method }}</dd>
+                    <dd class="font-semibold text-moka-ink">{{ $order->status === 'WAITING' ? '-' : $order->payment_method }}</dd>
                 </div>
                 <hr class="border-moka-line">
                 <div class="flex items-center justify-between">

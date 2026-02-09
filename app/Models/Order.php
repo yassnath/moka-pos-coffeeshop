@@ -14,6 +14,7 @@ class Order extends Model
     protected $fillable = [
         'invoice_no',
         'user_id',
+        'waiter_id',
         'status',
         'subtotal',
         'discount_type',
@@ -45,6 +46,11 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function waiter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'waiter_id');
     }
 
     public function items(): HasMany

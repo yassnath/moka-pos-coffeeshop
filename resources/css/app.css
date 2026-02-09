@@ -77,7 +77,11 @@
     }
 
     .moka-chip {
-        @apply inline-flex min-h-11 items-center justify-center rounded-full border border-moka-line px-4 text-sm font-semibold text-moka-muted transition duration-200 hover:border-moka-primary/30 hover:bg-white;
+        @apply inline-flex min-h-11 items-center justify-center rounded-full border border-moka-line px-4 text-sm font-semibold text-moka-muted transition duration-200;
+    }
+
+    .moka-chip:not(.moka-chip-active):hover {
+        @apply border-moka-primary/30 bg-white;
     }
 
     .moka-chip-active {

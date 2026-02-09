@@ -48,6 +48,13 @@ class PosController extends Controller
             ->limit(20)
             ->get(['id', 'total', 'updated_at']);
 
+        $waiterOrders = Order::query()
+            ->where('status', 'WAITING')
+            ->with(['waiter:id,name', 'user:id,name'])
+            ->orderByDesc('updated_at')
+            ->limit(20)
+            ->get(['id', 'total', 'updated_at', 'waiter_id', 'user_id']);
+
         $resumeOpenBill = null;
         if ($request->filled('open_bill')) {
             $openBillId = (int) $request->integer('open_bill');
@@ -55,6 +62,16 @@ class PosController extends Controller
                 ->whereKey($openBillId)
                 ->where('status', 'OPEN_BILL')
                 ->where('user_id', $request->user()->id)
+                ->with(['items.addons:id,order_item_id,addon_id,name_snapshot,price'])
+                ->first();
+        }
+
+        $resumeWaiterOrder = null;
+        if ($request->filled('waiter_order')) {
+            $waiterOrderId = (int) $request->integer('waiter_order');
+            $resumeWaiterOrder = Order::query()
+                ->whereKey($waiterOrderId)
+                ->where('status', 'WAITING')
                 ->with(['items.addons:id,order_item_id,addon_id,name_snapshot,price'])
                 ->first();
         }
@@ -86,6 +103,33 @@ class PosController extends Controller
             ];
         }
 
+        $resumeWaiterPayload = null;
+        if ($resumeWaiterOrder) {
+            $resumeWaiterPayload = [
+                'id' => $resumeWaiterOrder->id,
+                'discount_type' => $resumeWaiterOrder->discount_type,
+                'discount_value' => (float) $resumeWaiterOrder->discount_value,
+                'tax_percent' => $this->deriveTaxPercent($resumeWaiterOrder),
+                'service' => (float) $resumeWaiterOrder->service,
+                'notes' => $resumeWaiterOrder->notes,
+                'items' => $resumeWaiterOrder->items->map(function ($item) {
+                    return [
+                        'product_id' => $item->product_id,
+                        'variant_id' => $item->variant_id,
+                        'name_snapshot' => $item->name_snapshot,
+                        'price' => (float) $item->price,
+                        'qty' => (int) $item->qty,
+                        'notes' => $item->notes,
+                        'addons' => $item->addons->map(fn ($addon) => [
+                            'id' => $addon->addon_id,
+                            'name' => $addon->name_snapshot,
+                            'price' => (float) $addon->price,
+                        ])->values()->all(),
+                    ];
+                })->values()->all(),
+            ];
+        }
+
         return view('pos.index', [
             'categories' => $categories,
             'products' => $products,
@@ -93,6 +137,29 @@ class PosController extends Controller
             'paymentMethods' => $paymentMethods,
             'openBills' => $openBills,
             'resumeOpenBill' => $resumePayload,
+            'waiterOrders' => $waiterOrders,
+            'resumeWaiterOrder' => $resumeWaiterPayload,
+        ]);
+    }
+
+    public function waiterOrders(Request $request): JsonResponse
+    {
+        $orders = Order::query()
+            ->where('status', 'WAITING')
+            ->with(['waiter:id,name', 'user:id,name'])
+            ->orderByDesc('updated_at')
+            ->limit(20)
+            ->get(['id', 'total', 'updated_at', 'waiter_id', 'user_id']);
+
+        $payload = $orders->map(fn ($order) => [
+            'id' => $order->id,
+            'total' => (float) $order->total,
+            'updated_at' => optional($order->updated_at)?->toIso8601String(),
+            'waiter_name' => $order->waiter?->name ?? $order->user?->name ?? '-',
+        ])->values();
+
+        return response()->json([
+            'orders' => $payload,
         ]);
     }
 
@@ -111,38 +178,6 @@ class PosController extends Controller
         ]);
     }
 
-    public function cancelOpenBill(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'open_bill_id' => ['required', 'integer'],
-        ]);
-
-        $openBill = Order::query()
-            ->whereKey($validated['open_bill_id'])
-            ->where('status', 'OPEN_BILL')
-            ->where('user_id', $request->user()->id)
-            ->with('items.product')
-            ->first();
-
-        if (! $openBill) {
-            return response()->json([
-                'message' => 'Open bill tidak ditemukan.',
-            ], 404);
-        }
-
-        DB::transaction(function () use ($openBill) {
-            $this->restoreStockFromOrder($openBill);
-            $openBill->update([
-                'status' => 'VOID',
-                'payment_method' => 'CANCELED',
-                'ordered_at' => now(),
-            ]);
-        });
-
-        return response()->json([
-            'message' => 'Open bill berhasil dibatalkan.',
-        ]);
-    }
 
     public function checkout(CheckoutRequest $request): JsonResponse
     {
@@ -201,7 +236,7 @@ class PosController extends Controller
     /**
      * @param array<string, mixed> $validated
      */
-    private function persistOrderFromPayload(int $userId, array $validated, string $targetStatus): Order
+    protected function persistOrderFromPayload(int $userId, array $validated, string $targetStatus): Order
     {
         $itemsInput = $validated['items'];
         $discountType = $validated['discount_type'] ?? 'none';
@@ -211,29 +246,32 @@ class PosController extends Controller
         $openBillId = isset($validated['open_bill_id']) ? (int) $validated['open_bill_id'] : null;
 
         return DB::transaction(function () use ($itemsInput, $discountType, $discountValue, $taxPercentInput, $service, $validated, $targetStatus, $userId, $openBillId) {
-            $openBill = null;
+            $draftOrder = null;
             $existingQtyByProduct = [];
+            $draftStatus = null;
 
             if ($openBillId) {
-                $openBill = Order::query()
+                $draftOrder = Order::query()
                     ->whereKey($openBillId)
                     ->lockForUpdate()
                     ->with(['items.product:id,track_stock'])
                     ->first();
 
-                if (! $openBill || $openBill->status !== 'OPEN_BILL') {
+                if (! $draftOrder || ! in_array($draftOrder->status, ['OPEN_BILL', 'WAITING'], true)) {
                     throw ValidationException::withMessages([
                         'open_bill_id' => 'Open bill tidak ditemukan atau sudah ditutup.',
                     ]);
                 }
 
-                if ((int) $openBill->user_id !== $userId) {
+                $draftStatus = $draftOrder->status;
+
+                if ($draftStatus === 'OPEN_BILL' && (int) $draftOrder->user_id !== $userId) {
                     throw ValidationException::withMessages([
                         'open_bill_id' => 'Kamu tidak memiliki akses ke open bill ini.',
                     ]);
                 }
 
-                foreach ($openBill->items as $oldItem) {
+                foreach ($draftOrder->items as $oldItem) {
                     if (! $oldItem->product || ! $oldItem->product->track_stock) {
                         continue;
                     }
@@ -255,17 +293,17 @@ class PosController extends Controller
 
             $discountAmount = $this->resolveDiscountAmount($subtotal, $discountType, $normalizedDiscountValue);
             $taxPercent = is_null($taxPercentInput)
-                ? ($openBill ? $this->deriveTaxPercent($openBill) : 10.0)
+                ? ($draftOrder ? $this->deriveTaxPercent($draftOrder) : 10.0)
                 : min(100, max(0, $taxPercentInput));
 
             $baseAfterDiscount = round(max(0, $subtotal - $discountAmount), 2);
             $tax = round($baseAfterDiscount * ($taxPercent / 100), 2);
             $total = round($baseAfterDiscount + $tax + $service, 2);
 
-            $paymentMethodName = 'OPEN BILL';
+            $paymentMethodName = $targetStatus === 'WAITING' ? 'WAITING' : 'OPEN BILL';
             $cashReceived = null;
             $change = null;
-            $invoiceNo = $openBill?->invoice_no ?? $this->nextOpenBillReference();
+            $invoiceNo = $draftOrder?->invoice_no ?? ($targetStatus === 'WAITING' ? $this->nextWaiterReference() : $this->nextOpenBillReference());
 
             if ($targetStatus === 'PAID') {
                 $paymentMethod = PaymentMethod::query()->active()->findOrFail($validated['payment_method_id']);
@@ -288,11 +326,11 @@ class PosController extends Controller
                 $invoiceNo = $this->nextInvoiceNumber();
             }
 
-            if ($openBill) {
-                $this->restoreStockFromOrder($openBill);
-                $openBill->items()->delete();
+            if ($draftOrder) {
+                $this->restoreStockFromOrder($draftOrder);
+                $draftOrder->items()->delete();
 
-                $openBill->update([
+                $updatePayload = [
                     'invoice_no' => $invoiceNo,
                     'status' => $targetStatus,
                     'subtotal' => $subtotal,
@@ -306,13 +344,21 @@ class PosController extends Controller
                     'change' => $change,
                     'notes' => $validated['notes'] ?? null,
                     'ordered_at' => now(),
-                ]);
+                ];
 
-                $order = $openBill->refresh();
+                if ($draftStatus === 'WAITING') {
+                    $updatePayload['waiter_id'] = $draftOrder->waiter_id ?? $draftOrder->user_id;
+                    $updatePayload['user_id'] = $userId;
+                }
+
+                $draftOrder->update($updatePayload);
+
+                $order = $draftOrder->refresh();
             } else {
                 $order = Order::query()->create([
                     'invoice_no' => $invoiceNo,
                     'user_id' => $userId,
+                    'waiter_id' => $targetStatus === 'WAITING' ? $userId : null,
                     'status' => $targetStatus,
                     'subtotal' => $subtotal,
                     'discount_type' => $discountType,
@@ -334,7 +380,7 @@ class PosController extends Controller
         });
     }
 
-    private function resolveDiscountAmount(float $subtotal, string $discountType, float $discountValue): float
+    protected function resolveDiscountAmount(float $subtotal, string $discountType, float $discountValue): float
     {
         if ($discountType === 'percent') {
             return round($subtotal * min(100, max(0, $discountValue)) / 100, 2);
@@ -347,7 +393,7 @@ class PosController extends Controller
         return 0.0;
     }
 
-    private function deriveTaxPercent(Order $order): float
+    protected function deriveTaxPercent(Order $order): float
     {
         $subtotal = (float) $order->subtotal;
         $discountAmount = $this->resolveDiscountAmount(
@@ -369,7 +415,7 @@ class PosController extends Controller
      * @param array<int, int> $existingQtyByProduct
      * @return array{0: array<int, array<string, mixed>>, 1: float}
      */
-    private function computeValidatedItems(array $itemsInput, array $existingQtyByProduct = []): array
+    protected function computeValidatedItems(array $itemsInput, array $existingQtyByProduct = []): array
     {
         $computedItems = [];
         $subtotal = 0.0;
@@ -468,7 +514,7 @@ class PosController extends Controller
         return [ $computedItems, round($subtotal, 2) ];
     }
 
-    private function restoreStockFromOrder(Order $order): void
+    protected function restoreStockFromOrder(Order $order): void
     {
         $order->loadMissing('items.product');
 
@@ -484,7 +530,7 @@ class PosController extends Controller
     /**
      * @param array<int, array<string, mixed>> $computedItems
      */
-    private function replaceOrderItems(Order $order, array $computedItems): void
+    protected function replaceOrderItems(Order $order, array $computedItems): void
     {
         foreach ($computedItems as $computed) {
             /** @var Product $product */
@@ -523,12 +569,17 @@ class PosController extends Controller
         }
     }
 
-    private function nextOpenBillReference(): string
+    protected function nextOpenBillReference(): string
     {
         return 'OB-'.now()->format('YmdHis').'-'.str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
     }
 
-    private function nextInvoiceNumber(): string
+    protected function nextWaiterReference(): string
+    {
+        return 'WT-'.now()->format('YmdHis').'-'.str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+    }
+
+    protected function nextInvoiceNumber(): string
     {
         $today = now()->toDateString();
 

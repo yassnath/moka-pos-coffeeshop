@@ -1,12 +1,13 @@
 @php
-    $isKasir = auth()->user()->isKasir();
+    $userRole = auth()->user();
+    $isStaff = $userRole->isKasir() || $userRole->isWaiter();
 @endphp
 
 <section x-data="{ profileConfirmOpen: false }">
     <header>
         <h2 class="font-display text-xl font-bold text-moka-ink">Informasi Akun</h2>
         <p class="mt-1 text-sm text-moka-muted">
-            {{ $isKasir ? 'Perbarui nama akun kasir.' : 'Perbarui nama dan email pengguna.' }}
+            {{ $isStaff ? 'Perbarui nama akun.' : 'Perbarui nama dan email pengguna.' }}
         </p>
     </header>
 
@@ -30,13 +31,13 @@
                 id="email"
                 name="email"
                 type="email"
-                class="mt-1 block w-full {{ $isKasir ? 'bg-moka-soft/60 text-moka-ink' : '' }}"
+                class="mt-1 block w-full {{ $isStaff ? 'bg-moka-soft/60 text-moka-ink' : '' }}"
                 :value="old('email', $user->email)"
                 required
                 autocomplete="username"
-                @if($isKasir) readonly @endif
+                @if($isStaff) readonly @endif
             />
-            @if($isKasir)
+            @if($isStaff)
                 <p class="mt-2 text-xs text-moka-muted">Email hanya bisa diubah oleh admin.</p>
             @endif
             <x-input-error :messages="$errors->get('email')" />

@@ -20,7 +20,7 @@ class ProfileUpdateRequest extends FormRequest
         ];
 
         $user = $this->user();
-        if (! $user || ! $user->isKasir()) {
+        if ($user && $user->isAdmin()) {
             $rules['email'] = [
                 'required',
                 'string',

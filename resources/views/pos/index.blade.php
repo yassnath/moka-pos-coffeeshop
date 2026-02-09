@@ -1,5 +1,8 @@
 
 @php
+    $mode = $mode ?? 'kasir';
+    $isWaiter = $mode === 'waiter';
+
     $categoryPayload = $categories->map(fn ($category) => [
         'id' => $category->id,
         'name' => $category->name,
@@ -43,6 +46,13 @@
         'total' => (float) $openBill->total,
         'updated_at' => optional($openBill->updated_at)?->toIso8601String(),
     ])->values();
+
+    $waiterOrderPayload = $waiterOrders->map(fn ($order) => [
+        'id' => $order->id,
+        'total' => (float) $order->total,
+        'updated_at' => optional($order->updated_at)?->toIso8601String(),
+        'waiter_name' => $order->waiter?->name ?? $order->user?->name ?? '-',
+    ])->values();
 @endphp
 
 <!DOCTYPE html>
@@ -51,7 +61,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>POS Kasir | {{ config('app.name', 'Moka POS') }}</title>
+    <title>{{ $isWaiter ? 'Waiter' : 'POS Kasir' }} | {{ config('app.name', 'Moka POS') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,13 +75,17 @@
             products: {{ Illuminate\Support\Js::from($productPayload) }},
             addons: {{ Illuminate\Support\Js::from($addonPayload) }},
             paymentMethods: {{ Illuminate\Support\Js::from($paymentPayload) }},
+            mode: @js($mode),
+            orderUrl: @js($isWaiter ? route('waiter.orders.store') : null),
             checkoutUrl: @js(route('pos.checkout')),
             saveOpenBillUrl: @js(route('pos.open-bill.save')),
-            cancelOpenBillUrl: @js(route('pos.open-bill.cancel')),
-            historyUrl: @js(route('pos.history')),
+            historyUrl: @js($isWaiter ? route('waiter.history') : route('pos.history')),
             posIndexUrl: @js(route('pos.index')),
+            waiterOrdersUrl: @js($isWaiter ? null : route('pos.waiter-orders')),
             openBills: {{ Illuminate\Support\Js::from($openBillPayload) }},
             resumeOpenBill: {{ Illuminate\Support\Js::from($resumeOpenBill) }},
+            waiterOrders: {{ Illuminate\Support\Js::from($waiterOrderPayload) }},
+            resumeWaiterOrder: {{ Illuminate\Support\Js::from($resumeWaiterOrder) }},
         })"
         x-init="init()"
         class="page-shell h-screen overflow-hidden"
@@ -86,20 +100,20 @@
                     <img src="{{ asset('logo.png') }}" alt="Moka POS" class="h-10 w-10 rounded-xl border border-moka-line object-cover">
                     <div>
                         <p class="font-display text-base font-bold text-moka-ink">Moka POS - Solvix Coffee</p>
-                        <p class="text-xs text-moka-muted">Kasir Online</p>
+                        <p class="text-xs text-moka-muted">{{ $isWaiter ? 'Waiter Online' : 'Kasir Online' }}</p>
                     </div>
                 </div>
 
                 <div class="hidden items-center gap-4 md:flex">
                     <div class="rounded-full border border-moka-line bg-white px-4 py-2 text-sm font-semibold text-moka-muted" x-text="clockLabel"></div>
                     <p class="text-sm text-moka-muted">Halo, <span class="font-semibold text-moka-ink">{{ auth()->user()->name }}</span></p>
-                    <a href="{{ route('pos.history') }}" class="moka-btn-secondary px-4">Riwayat</a>
+                    <a href="{{ $isWaiter ? route('waiter.history') : route('pos.history') }}" class="moka-btn-secondary px-4">Riwayat</a>
                     <a href="{{ route('profile.edit') }}" class="moka-btn-secondary px-4">Profil</a>
                     <button type="button" class="moka-btn-danger px-4" @click="logoutOpen = true">Logout</button>
                 </div>
 
                 <div class="flex items-center gap-2 md:hidden">
-                    <a href="{{ route('pos.history') }}" class="moka-btn-secondary px-3">Riwayat</a>
+                    <a href="{{ $isWaiter ? route('waiter.history') : route('pos.history') }}" class="moka-btn-secondary px-3">Riwayat</a>
                     <a href="{{ route('profile.edit') }}" class="moka-btn-secondary px-3">Profil</a>
                     <button type="button" class="moka-btn-danger px-3" @click="logoutOpen = true">Logout</button>
                 </div>
@@ -125,7 +139,7 @@
                         </template>
                     </div>
                     <div class="border-t border-moka-line p-3">
-                        <a :href="historyUrl" class="moka-btn-secondary w-full justify-center">Riwayat Hari Ini</a>
+                        <a :href="historyUrl" class="moka-btn-secondary w-full justify-center">{{ $isWaiter ? 'Riwayat Pesanan' : 'Riwayat Hari Ini' }}</a>
                     </div>
                 </aside>
                 <section class="soft-card flex h-full min-h-0 flex-col overflow-hidden md:col-span-1">
@@ -199,23 +213,45 @@
                 <section class="soft-card flex min-h-0 max-h-full flex-col overflow-hidden md:col-span-1 md:self-start xl:col-span-1" :class="mobileTab === 'cart' || !isMobile() ? '' : 'hidden md:flex'">
                     <div class="border-b border-moka-line p-4">
                         <h2 class="font-display text-xl font-bold text-moka-ink">Keranjang</h2>
-                        <div class="mt-1 flex items-center justify-between gap-2">
-                            <p class="text-xs text-moka-muted">
-                                Open bill aktif:
-                                <span class="font-semibold text-moka-ink" x-text="openBills.length"></span>
-                            </p>
-                            <button
-                                type="button"
-                                class="text-xs font-semibold text-moka-primary transition hover:text-moka-ink disabled:cursor-not-allowed disabled:opacity-40"
-                                :disabled="openBills.length === 0"
-                                @click="openOpenBillsModal()"
-                            >
-                                Lihat
-                            </button>
-                        </div>
+                        @unless($isWaiter)
+                            <div class="mt-1 flex items-center justify-between gap-2">
+                                <p class="text-xs text-moka-muted">
+                                    Open bill aktif:
+                                    <span class="font-semibold text-moka-ink" x-text="openBills.length"></span>
+                                </p>
+                                <button
+                                    type="button"
+                                    class="text-xs font-semibold text-moka-primary transition hover:text-moka-ink disabled:cursor-not-allowed disabled:opacity-40"
+                                    :disabled="openBills.length === 0"
+                                    @click="openOpenBillsModal()"
+                                >
+                                    Lihat
+                                </button>
+                            </div>
+                            <div class="mt-1 flex items-center justify-between gap-2">
+                                <p class="text-xs text-moka-muted">
+                                    Pesanan masuk:
+                                    <span class="font-semibold text-moka-ink" x-text="waiterOrders.length"></span>
+                                    <span x-show="waiterOrdersHasNew" class="ml-1 inline-flex h-2 w-2 rounded-full bg-moka-primary"></span>
+                                </p>
+                                <button
+                                    type="button"
+                                    class="text-xs font-semibold text-moka-primary transition hover:text-moka-ink disabled:cursor-not-allowed disabled:opacity-40"
+                                    :disabled="waiterOrders.length === 0"
+                                    @click="openWaiterOrdersModal()"
+                                >
+                                    Lihat
+                                </button>
+                            </div>
+                        @endunless
                         <template x-if="editingOpenBillId">
                             <p class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
-                                Sedang edit Open Bill #<span x-text="editingOpenBillId"></span>
+                                <template x-if="editingDraftSource === 'WAITING'">
+                                    <span>Pesanan Waiter #<span x-text="editingOpenBillId"></span></span>
+                                </template>
+                                <template x-if="editingDraftSource !== 'WAITING'">
+                                    <span>Sedang edit Open Bill #<span x-text="editingOpenBillId"></span></span>
+                                </template>
                             </p>
                         </template>
                     </div>
@@ -273,17 +309,29 @@
 
                     <div class="shrink-0 border-t border-moka-line bg-white/90">
                         <div class="grid gap-2 px-3 py-2.5">
-                            <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="saveOpenBill()">
-                                <span x-text="editingOpenBillId ? 'Update Open Bill' : 'Simpan Open Bill'"></span>
-                            </button>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="cancelBillOpen = true">
-                                    Cancel Order
+                            @unless($isWaiter)
+                                <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="saveOpenBill()">
+                                    <span x-text="editingOpenBillId ? 'Update Open Bill' : 'Simpan Open Bill'"></span>
                                 </button>
-                                <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="openPayment()">
-                                    Continue
-                                </button>
-                            </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting || editingOpenBillId" @click="cancelBillOpen = true">
+                                        Cancel Order
+                                    </button>
+                                    <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="openPayment()">
+                                        Continue
+                                    </button>
+                                </div>
+                            @else
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting || editingOpenBillId" @click="cancelBillOpen = true">
+                                        Cancel Order
+                                    </button>
+                                    <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="submitWaiterOrder()">
+                                        <span x-show="!isSubmitting">Kirim ke Kasir</span>
+                                        <span x-show="isSubmitting">Mengirim...</span>
+                                    </button>
+                                </div>
+                            @endunless
                         </div>
                     </div>
                 </section>
@@ -297,6 +345,7 @@
             </button>
             <a :href="historyUrl" class="moka-chip px-4 py-2 text-xs">Riwayat</a>
         </div>
+        @unless($isWaiter)
         <x-ui.modal name="openBillsOpen" maxWidth="xl">
             <div class="moka-modal-content">
                 <div class="moka-modal-header">
@@ -339,6 +388,51 @@
                 </div>
             </div>
         </x-ui.modal>
+        <x-ui.modal name="waiterOrdersOpen" maxWidth="xl">
+            <div class="moka-modal-content">
+                <div class="moka-modal-header">
+                    <div>
+                        <h3 class="moka-modal-title">Pesanan Masuk</h3>
+                        <p class="moka-modal-subtitle">Pesanan dari waiter yang menunggu diproses kasir.</p>
+                    </div>
+                    <button type="button" class="moka-modal-close" @click="waiterOrdersOpen = false" aria-label="Tutup popup">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mt-4 max-h-[45vh] md:max-h-[50vh] space-y-2 overflow-y-auto pr-1">
+                    <template x-if="waiterOrders.length === 0">
+                        <div class="rounded-xl border border-dashed border-moka-line bg-white px-4 py-8 text-center text-sm text-moka-muted">
+                            Belum ada pesanan masuk.
+                        </div>
+                    </template>
+
+                    <template x-for="order in waiterOrders" :key="order.id">
+                        <div class="rounded-xl border border-moka-line bg-white p-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="font-semibold text-moka-ink">Pesanan #<span x-text="order.id"></span></p>
+                                    <p class="text-xs text-moka-muted" x-text="order.waiter_name ? `Waiter: ${order.waiter_name}` : 'Waiter: -'"></p>
+                                    <p class="text-xs text-moka-muted" x-text="`Update: ${formatDateTime(order.updated_at)}`"></p>
+                                    <p class="mt-1 text-sm font-semibold text-moka-primary text-money" x-text="formatCurrency(order.total)"></p>
+                                </div>
+                                <button type="button" class="moka-btn-secondary px-3 py-2 text-sm" @click="continueWaiterOrder(order.id)">
+                                    Proses
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="moka-modal-footer">
+                    <button type="button" class="moka-btn-secondary" @click="waiterOrdersOpen = false">Tutup</button>
+                </div>
+            </div>
+        </x-ui.modal>
+        @endunless
+        @unless($isWaiter)
         <x-ui.modal name="openBillSavedOpen" maxWidth="md">
             <div class="moka-modal-content">
                 <div class="moka-modal-header">
@@ -358,11 +452,12 @@
                 </div>
             </div>
         </x-ui.modal>
+        @endunless
         <x-ui.modal name="cancelBillOpen" maxWidth="md">
             <div class="moka-modal-content">
                 <div class="moka-modal-header">
                     <div>
-                        <h3 class="moka-modal-title">Konfirmasi Cancel Bill</h3>
+                        <h3 class="moka-modal-title">Konfirmasi Cancel Order</h3>
                         <p class="moka-modal-subtitle">Apakah anda yakin ingin cancel?</p>
                     </div>
                     <button type="button" class="moka-modal-close" @click="cancelBillOpen = false" aria-label="Tutup popup">
@@ -374,6 +469,24 @@
                 <div class="moka-modal-footer">
                     <button type="button" class="moka-btn-secondary" @click="cancelBillOpen = false">Tidak</button>
                     <button type="button" class="moka-btn-danger" @click="confirmCancelBill()">Ya</button>
+                </div>
+            </div>
+        </x-ui.modal>
+        <x-ui.modal name="orderSentOpen" maxWidth="md">
+            <div class="moka-modal-content">
+                <div class="moka-modal-header">
+                    <div>
+                        <h3 class="moka-modal-title">Pesanan Terkirim</h3>
+                        <p class="moka-modal-subtitle" x-text="orderSentMessage"></p>
+                    </div>
+                    <button type="button" class="moka-modal-close" @click="closeOrderSent()" aria-label="Tutup popup">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="moka-modal-footer">
+                    <button type="button" class="moka-btn" @click="closeOrderSent()">Oke</button>
                 </div>
             </div>
         </x-ui.modal>
@@ -480,6 +593,7 @@
                 </div>
             </div>
         </x-ui.modal>
+        @unless($isWaiter)
         <x-ui.modal name="confirmPaymentOpen" maxWidth="md">
             <div class="moka-modal-content">
                 <div class="moka-modal-header">
@@ -630,6 +744,7 @@
                 </div>
             </div>
         </x-ui.modal>
+        @endunless
 
     </div>
 
@@ -640,13 +755,18 @@
                 products: config.products,
                 addons: config.addons,
                 paymentMethods: config.paymentMethods,
+                mode: config.mode ?? 'kasir',
+                orderUrl: config.orderUrl,
                 checkoutUrl: config.checkoutUrl,
                 saveOpenBillUrl: config.saveOpenBillUrl,
-                cancelOpenBillUrl: config.cancelOpenBillUrl,
                 historyUrl: config.historyUrl,
                 posIndexUrl: config.posIndexUrl,
+                waiterOrdersUrl: config.waiterOrdersUrl,
                 openBills: config.openBills ?? [],
                 resumeOpenBill: config.resumeOpenBill ?? null,
+                waiterOrders: config.waiterOrders ?? [],
+                resumeWaiterOrder: config.resumeWaiterOrder ?? null,
+                waiterOrdersHasNew: false,
                 search: '',
                 selectedCategory: null,
                 cart: [],
@@ -672,15 +792,20 @@
                 itemQty: 1,
                 logoutOpen: false,
                 openBillsOpen: false,
+                waiterOrdersOpen: false,
                 openBillSavedOpen: false,
                 openBillSavedMessage: 'Open Bill berhasil ditambahkan.',
                 cancelBillOpen: false,
+                orderSentOpen: false,
+                orderSentMessage: '',
                 confirmPaymentOpen: false,
                 paymentOpen: false,
                 isSubmitting: false,
                 clockLabel: '',
                 mobileTab: 'menu',
                 editingOpenBillId: null,
+                editingDraftSource: null,
+                waiterOrdersPoller: null,
 
                 init() {
                     this.selectedPaymentMethodId = this.paymentMethods[0]?.id ?? null;
@@ -688,9 +813,13 @@
                     this.updateClock();
                     setInterval(() => this.updateClock(), 1000);
 
-                    if (this.resumeOpenBill) {
-                        this.hydrateFromOpenBill(this.resumeOpenBill);
+                    if (this.resumeWaiterOrder) {
+                        this.hydrateFromDraft(this.resumeWaiterOrder, 'WAITING');
+                    } else if (this.resumeOpenBill) {
+                        this.hydrateFromDraft(this.resumeOpenBill, 'OPEN_BILL');
                     }
+
+                    this.startWaiterPolling();
 
                     window.addEventListener('keydown', (event) => {
                         const target = event.target;
@@ -709,15 +838,21 @@
 
                         if (event.key === 'Enter' && event.ctrlKey) {
                             event.preventDefault();
-                            this.openPayment();
+                            if (this.mode === 'waiter') {
+                                this.submitWaiterOrder();
+                            } else {
+                                this.openPayment();
+                            }
                         }
 
                         if (event.key === 'Escape') {
                             this.customizeOpen = false;
                             this.logoutOpen = false;
                             this.openBillsOpen = false;
+                            this.waiterOrdersOpen = false;
                             this.openBillSavedOpen = false;
                             this.cancelBillOpen = false;
+                            this.orderSentOpen = false;
                             this.alertOpen = false;
                             this.confirmPaymentOpen = false;
                             this.paymentOpen = false;
@@ -757,6 +892,11 @@
                     }
                 },
 
+                closeOrderSent() {
+                    this.orderSentOpen = false;
+                    this.resetBillState();
+                },
+
                 formatDateTime(value) {
                     if (!value) {
                         return '-';
@@ -775,6 +915,11 @@
                     this.openBillsOpen = true;
                 },
 
+                openWaiterOrdersModal() {
+                    this.waiterOrdersOpen = true;
+                    this.waiterOrdersHasNew = false;
+                },
+
                 continueOpenBill(openBillId) {
                     if (!openBillId) {
                         return;
@@ -784,6 +929,58 @@
                     const url = new URL(this.posIndexUrl, window.location.origin);
                     url.searchParams.set('open_bill', openBillId);
                     window.location.href = url.toString();
+                },
+
+                continueWaiterOrder(orderId) {
+                    if (!orderId) {
+                        return;
+                    }
+
+                    this.waiterOrdersOpen = false;
+                    this.waiterOrdersHasNew = false;
+                    const url = new URL(this.posIndexUrl, window.location.origin);
+                    url.searchParams.set('waiter_order', orderId);
+                    window.location.href = url.toString();
+                },
+
+                startWaiterPolling() {
+                    if (this.mode === 'waiter' || !this.waiterOrdersUrl) {
+                        return;
+                    }
+
+                    this.fetchWaiterOrders();
+                    this.waiterOrdersPoller = setInterval(() => this.fetchWaiterOrders(), 20000);
+                },
+
+                async fetchWaiterOrders() {
+                    if (!this.waiterOrdersUrl) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(this.waiterOrdersUrl, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+
+                        if (!response.ok) {
+                            return;
+                        }
+
+                        const data = await response.json();
+                        if (!Array.isArray(data.orders)) {
+                            return;
+                        }
+
+                        const currentIds = new Set(this.waiterOrders.map((order) => order.id));
+                        const hasNew = data.orders.some((order) => !currentIds.has(order.id));
+                        if (hasNew) {
+                            this.waiterOrdersHasNew = true;
+                        }
+
+                        this.waiterOrders = data.orders;
+                    } catch (error) {
+                        // ignore polling failures
+                    }
                 },
 
                 get filteredProducts() {
@@ -897,18 +1094,19 @@
                     this.selectProduct(this.firstFilteredProduct);
                 },
 
-                hydrateFromOpenBill(openBill) {
-                    if (!openBill || !Array.isArray(openBill.items)) {
+                hydrateFromDraft(draft, source = 'OPEN_BILL') {
+                    if (!draft || !Array.isArray(draft.items)) {
                         return;
                     }
 
-                    this.editingOpenBillId = openBill.id ?? null;
-                    this.discountType = openBill.discount_type ?? 'none';
-                    this.discountValue = `${openBill.discount_value ?? 0}`;
-                    this.taxPercentInput = this.normalizeTaxPercentInput(openBill.tax_percent ?? 10);
-                    this.service = `${openBill.service ?? 0}`;
-                    this.orderNotes = openBill.notes ?? '';
-                    this.cart = openBill.items.map((item) => ({
+                    this.editingOpenBillId = draft.id ?? null;
+                    this.editingDraftSource = source;
+                    this.discountType = draft.discount_type ?? 'none';
+                    this.discountValue = `${draft.discount_value ?? 0}`;
+                    this.taxPercentInput = this.normalizeTaxPercentInput(draft.tax_percent ?? 10);
+                    this.service = `${draft.service ?? 0}`;
+                    this.orderNotes = draft.notes ?? '';
+                    this.cart = draft.items.map((item) => ({
                         uid: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
                         product_id: item.product_id,
                         variant_id: item.variant_id,
@@ -923,7 +1121,8 @@
                         notes: item.notes || '',
                     }));
 
-                    this.showAlert('Open Bill', `Open Bill #${this.editingOpenBillId} berhasil dimuat.`, 'success');
+                    const label = source === 'WAITING' ? 'Pesanan' : 'Open Bill';
+                    this.showAlert(label, `${label} #${this.editingOpenBillId} berhasil dimuat.`, 'success');
                 },
 
                 selectProduct(product) {
@@ -1117,6 +1316,7 @@
                     this.orderNotes = '';
                     this.cashReceived = '';
                     this.editingOpenBillId = null;
+                    this.editingDraftSource = null;
                     this.mobileTab = this.isMobile() ? 'menu' : this.mobileTab;
                 },
 
@@ -1129,33 +1329,8 @@
                     this.cancelBillOpen = false;
 
                     if (this.editingOpenBillId) {
-                        try {
-                            const response = await fetch(this.cancelOpenBillUrl, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                },
-                                body: JSON.stringify({
-                                    open_bill_id: this.editingOpenBillId,
-                                }),
-                            });
-
-                            const data = await response.json();
-                            if (!response.ok) {
-                                this.showAlert('Gagal', data.message || 'Gagal membatalkan open bill.', 'error');
-                                return;
-                            }
-
-                            this.openBills = this.openBills.filter((bill) => bill.id !== this.editingOpenBillId);
-                            this.resetBillState();
-                            this.showAlert('Berhasil', 'Open bill berhasil dibatalkan.', 'success');
-                            return;
-                        } catch (error) {
-                            this.showAlert('Gagal', 'Terjadi kesalahan jaringan saat membatalkan open bill.', 'error');
-                            return;
-                        }
+                        this.showAlert('Tidak bisa', 'Bill tidak bisa dibatalkan.', 'warning');
+                        return;
                     }
 
                     this.resetBillState();
@@ -1208,7 +1383,13 @@
                             return;
                         }
 
+                        if (this.editingDraftSource === 'WAITING') {
+                            this.waiterOrders = this.waiterOrders.filter((order) => order.id !== this.editingOpenBillId);
+                            this.waiterOrdersHasNew = false;
+                        }
+
                         this.editingOpenBillId = data.open_bill_id;
+                        this.editingDraftSource = 'OPEN_BILL';
                         const nowIso = new Date().toISOString();
                         const existingBill = this.openBills.find((bill) => bill.id === data.open_bill_id);
 
@@ -1236,7 +1417,69 @@
                     }
                 },
 
+                async submitWaiterOrder() {
+                    if (!this.orderUrl) {
+                        this.showAlert('Gagal', 'Endpoint waiter belum tersedia.', 'error');
+                        return;
+                    }
+
+                    if (this.cart.length === 0) {
+                        this.showAlert('Validasi', 'Keranjang masih kosong.', 'warning');
+                        return;
+                    }
+
+                    this.isSubmitting = true;
+
+                    try {
+                        const response = await fetch(this.orderUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+                            },
+                            body: JSON.stringify({
+                                items: this.cart.map((item) => ({
+                                    product_id: item.product_id,
+                                    variant_id: item.variant_id,
+                                    qty: item.qty,
+                                    addons: item.addons.map((addon) => addon.id),
+                                    notes: item.notes,
+                                })),
+                                discount_type: this.discountType,
+                                discount_value: this.numberValue(this.discountValue),
+                                tax_percent: this.taxPercentValue,
+                                service: this.numberValue(this.service),
+                                notes: this.orderNotes,
+                            }),
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok) {
+                            if (data.errors) {
+                                const firstError = Object.values(data.errors)[0];
+                                this.showAlert('Gagal', Array.isArray(firstError) ? firstError[0] : 'Gagal mengirim pesanan.', 'error');
+                            } else {
+                                this.showAlert('Gagal', data.message || 'Gagal mengirim pesanan.', 'error');
+                            }
+                            return;
+                        }
+
+                        this.orderSentMessage = data.message || 'Pesanan berhasil dikirim ke kasir.';
+                        this.orderSentOpen = true;
+                    } catch (error) {
+                        this.showAlert('Gagal', 'Terjadi kesalahan jaringan saat mengirim pesanan.', 'error');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
                 openPayment() {
+                    if (this.mode === 'waiter') {
+                        this.showAlert('Info', 'Gunakan tombol Kirim ke Kasir untuk mengirim pesanan.', 'warning');
+                        return;
+                    }
+
                     if (this.cart.length === 0) {
                         this.showAlert('Validasi', 'Keranjang masih kosong.', 'warning');
                         return;
@@ -1300,6 +1543,11 @@
                                 this.showAlert('Checkout gagal', data.message || 'Checkout gagal.', 'error');
                             }
                             return;
+                        }
+
+                        if (this.editingDraftSource === 'WAITING') {
+                            this.waiterOrders = this.waiterOrders.filter((order) => order.id !== this.editingOpenBillId);
+                            this.waiterOrdersHasNew = false;
                         }
 
                         window.location.href = data.redirect;

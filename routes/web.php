@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WaiterController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -18,6 +19,10 @@ Route::get('/', function () {
 
     if (auth()->user()->isAdmin()) {
         return redirect()->route('admin.reports.index');
+    }
+
+    if (auth()->user()->isWaiter()) {
+        return redirect()->route('waiter.index');
     }
 
     return redirect()->route('pos.index');
@@ -38,11 +43,21 @@ Route::middleware(['auth', 'role:kasir'])
     ->name('pos.')
     ->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
+        Route::get('/waiter-orders', [PosController::class, 'waiterOrders'])->name('waiter-orders');
         Route::post('/open-bill', [PosController::class, 'saveOpenBill'])->name('open-bill.save');
-        Route::post('/open-bill/cancel', [PosController::class, 'cancelOpenBill'])->name('open-bill.cancel');
         Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout');
         Route::get('/history', [PosController::class, 'history'])->name('history');
         Route::get('/history/{order}', [PosController::class, 'show'])->name('show');
+    });
+
+Route::middleware(['auth', 'role:waiter'])
+    ->prefix('waiter')
+    ->name('waiter.')
+    ->group(function () {
+        Route::get('/', [WaiterController::class, 'index'])->name('index');
+        Route::post('/orders', [WaiterController::class, 'store'])->name('orders.store');
+        Route::get('/history', [WaiterController::class, 'history'])->name('history');
+        Route::get('/history/{order}', [WaiterController::class, 'show'])->name('show');
     });
 
 Route::middleware(['auth', 'role:admin|kasir'])->group(function () {
