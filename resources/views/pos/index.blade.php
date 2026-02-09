@@ -93,11 +93,13 @@
                     <div class="rounded-full border border-moka-line bg-white px-4 py-2 text-sm font-semibold text-moka-muted" x-text="clockLabel"></div>
                     <p class="text-sm text-moka-muted">Halo, <span class="font-semibold text-moka-ink">{{ auth()->user()->name }}</span></p>
                     <a href="{{ route('pos.history') }}" class="moka-btn-secondary px-4">Riwayat</a>
+                    <a href="{{ route('profile.edit') }}" class="moka-btn-secondary px-4">Profil</a>
                     <button type="button" class="moka-btn-danger px-4" @click="logoutOpen = true">Logout</button>
                 </div>
 
                 <div class="flex items-center gap-2 md:hidden">
                     <a href="{{ route('pos.history') }}" class="moka-btn-secondary px-3">Riwayat</a>
+                    <a href="{{ route('profile.edit') }}" class="moka-btn-secondary px-3">Profil</a>
                     <button type="button" class="moka-btn-danger px-3" @click="logoutOpen = true">Logout</button>
                 </div>
             </div>
@@ -217,13 +219,12 @@
                         </template>
                     </div>
 
-                    <div class="px-4 py-3">
-                        <div
-                            class="overflow-y-auto pr-1 transition-[max-height] duration-200 ease-out"
-                            :class="cart.length === 0
-                                ? 'max-h-[190px]'
-                                : 'max-h-[56vh] md:max-h-[calc(100vh-15rem)]'"
-                        >
+                    <div class="px-4 py-3 flex flex-col" :class="cart.length === 0 ? 'flex-none' : 'flex-1 min-h-0'">
+                        <div class="flex min-h-0 flex-col" :class="cart.length === 0 ? '' : 'flex-1'">
+                            <div
+                                class="overflow-y-auto pr-1 transition-[max-height] duration-200 ease-out"
+                                :class="cart.length === 0 ? 'max-h-[190px]' : 'flex-1 min-h-0'"
+                            >
                             <template x-if="cart.length === 0">
                                 <div class="rounded-2xl border border-dashed border-moka-line bg-white px-4 py-10 text-center text-sm text-moka-muted">
                                     Keranjang masih kosong, pilih menu dulu.
@@ -265,6 +266,7 @@
                                     </div>
                                 </template>
                             </div>
+                            </div>
                         </div>
                     </div>
 
@@ -280,9 +282,14 @@
                             <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="saveOpenBill()">
                                 <span x-text="editingOpenBillId ? 'Update Open Bill' : 'Simpan Open Bill'"></span>
                             </button>
-                            <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="openPayment()">
-                                Continue
-                            </button>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="cancelBillOpen = true">
+                                    Cancel Order
+                                </button>
+                                <button type="button" class="moka-btn w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="openPayment()">
+                                    Continue
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -310,7 +317,7 @@
                     </button>
                 </div>
 
-                <div class="mt-4 max-h-[55vh] space-y-2 overflow-y-auto pr-1">
+                <div class="mt-4 max-h-[45vh] md:max-h-[50vh] space-y-2 overflow-y-auto pr-1">
                     <template x-if="openBills.length === 0">
                         <div class="rounded-xl border border-dashed border-moka-line bg-white px-4 py-8 text-center text-sm text-moka-muted">
                             Belum ada Open Bill aktif.
@@ -354,6 +361,25 @@
 
                 <div class="moka-modal-footer">
                     <button type="button" class="moka-btn" @click="acknowledgeOpenBillSaved()">Oke</button>
+                </div>
+            </div>
+        </x-ui.modal>
+        <x-ui.modal name="cancelBillOpen" maxWidth="md">
+            <div class="moka-modal-content">
+                <div class="moka-modal-header">
+                    <div>
+                        <h3 class="moka-modal-title">Konfirmasi Cancel Bill</h3>
+                        <p class="moka-modal-subtitle">Apakah anda yakin ingin cancel bill ini?</p>
+                    </div>
+                    <button type="button" class="moka-modal-close" @click="cancelBillOpen = false" aria-label="Tutup popup">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="moka-modal-footer">
+                    <button type="button" class="moka-btn-secondary" @click="cancelBillOpen = false">Tidak</button>
+                    <button type="button" class="moka-btn-danger" @click="confirmCancelBill()">Ya</button>
                 </div>
             </div>
         </x-ui.modal>
@@ -635,6 +661,7 @@
                 openBillsOpen: false,
                 openBillSavedOpen: false,
                 openBillSavedMessage: 'Open Bill berhasil ditambahkan.',
+                cancelBillOpen: false,
                 confirmPaymentOpen: false,
                 paymentOpen: false,
                 isSubmitting: false,
@@ -677,6 +704,7 @@
                             this.logoutOpen = false;
                             this.openBillsOpen = false;
                             this.openBillSavedOpen = false;
+                            this.cancelBillOpen = false;
                             this.confirmPaymentOpen = false;
                             this.paymentOpen = false;
                         }
@@ -1052,8 +1080,7 @@
                     this.cart.splice(index, 1);
                 },
 
-                acknowledgeOpenBillSaved() {
-                    this.openBillSavedOpen = false;
+                resetBillState() {
                     this.cart = [];
                     this.discountType = 'none';
                     this.discountValue = '';
@@ -1065,6 +1092,16 @@
                     this.noticeMessage = '';
                     this.editingOpenBillId = null;
                     this.mobileTab = this.isMobile() ? 'menu' : this.mobileTab;
+                },
+
+                acknowledgeOpenBillSaved() {
+                    this.openBillSavedOpen = false;
+                    this.resetBillState();
+                },
+
+                confirmCancelBill() {
+                    this.cancelBillOpen = false;
+                    this.resetBillState();
                 },
 
                 async saveOpenBill() {

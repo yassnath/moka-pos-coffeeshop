@@ -1,7 +1,13 @@
+@php
+    $isKasir = auth()->user()->isKasir();
+@endphp
+
 <section x-data="{ profileConfirmOpen: false }">
     <header>
         <h2 class="font-display text-xl font-bold text-moka-ink">Informasi Akun</h2>
-        <p class="mt-1 text-sm text-moka-muted">Perbarui nama dan email pengguna.</p>
+        <p class="mt-1 text-sm text-moka-muted">
+            {{ $isKasir ? 'Perbarui nama akun kasir.' : 'Perbarui nama dan email pengguna.' }}
+        </p>
     </header>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
@@ -20,7 +26,19 @@
 
         <div>
             <x-input-label for="email" :value="'Email'" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
+            <x-text-input
+                id="email"
+                name="email"
+                type="email"
+                class="mt-1 block w-full {{ $isKasir ? 'bg-moka-soft/60 text-moka-muted' : '' }}"
+                :value="old('email', $user->email)"
+                required
+                autocomplete="username"
+                @if($isKasir) readonly @endif
+            />
+            @if($isKasir)
+                <p class="mt-2 text-xs text-moka-muted">Email hanya bisa diubah oleh admin.</p>
+            @endif
             <x-input-error :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
@@ -38,6 +56,19 @@
                 @endif
             @endif
         </div>
+
+        @if($isKasir)
+            <div>
+                <x-input-label for="biodata" :value="'Biodata'" />
+                <textarea
+                    id="biodata"
+                    rows="3"
+                    class="mt-1 block w-full rounded-xl border-moka-line bg-moka-soft/60 text-sm text-moka-muted focus:border-moka-primary focus:ring-moka-primary/20"
+                    readonly
+                >{{ $user->biodata }}</textarea>
+                <p class="mt-2 text-xs text-moka-muted">Biodata diisi oleh admin.</p>
+            </div>
+        @endif
 
         <div class="flex items-center gap-3">
             <button type="submit" class="moka-btn">Simpan</button>

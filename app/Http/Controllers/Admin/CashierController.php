@@ -33,12 +33,14 @@ class CashierController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'biodata' => ['nullable', 'string', 'max:2000'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
         User::query()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'biodata' => $validated['biodata'] ?? null,
             'password' => Hash::make($validated['password']),
             'role' => User::ROLE_KASIR,
             'email_verified_at' => now(),
@@ -63,12 +65,14 @@ class CashierController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$cashier->id],
+            'biodata' => ['nullable', 'string', 'max:2000'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         ]);
 
         $cashier->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'biodata' => $validated['biodata'] ?? null,
         ]);
 
         if (! empty($validated['password'])) {

@@ -31,6 +31,7 @@
                         <tr>
                             <th>Nama</th>
                             <th>Email</th>
+                            <th>Biodata</th>
                             <th>Dibuat</th>
                             <th class="text-center">Aksi</th>
                         </tr>
@@ -40,6 +41,7 @@
                             <tr>
                                 <td class="font-semibold">{{ $cashier->name }}</td>
                                 <td class="text-moka-muted">{{ $cashier->email }}</td>
+                                <td class="text-moka-muted max-w-[240px] truncate">{{ $cashier->biodata ?: '-' }}</td>
                                 <td>{{ optional($cashier->created_at)->format('d M Y') }}</td>
                                 <td class="text-center">
                                     <a href="{{ route('admin.cashiers.edit', $cashier) }}" class="text-sm font-semibold text-moka-primary hover:text-moka-ink">Edit</a>
@@ -52,7 +54,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-10 text-center text-sm text-moka-muted">Belum ada kasir.</td>
+                                <td colspan="5" class="py-10 text-center text-sm text-moka-muted">Belum ada kasir.</td>
                             </tr>
                         @endforelse
                     </tbody>

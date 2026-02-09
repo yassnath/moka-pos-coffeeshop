@@ -11,12 +11,14 @@
             @include('profile.partials.update-profile-information-form')
         </x-ui.card>
 
-        <x-ui.card>
-            @include('profile.partials.update-password-form')
-        </x-ui.card>
+        @if (!auth()->user()->isKasir())
+            <x-ui.card>
+                @include('profile.partials.update-password-form')
+            </x-ui.card>
 
-        <x-ui.card>
-            @include('profile.partials.delete-user-form')
-        </x-ui.card>
+            <x-ui.card>
+                @include('profile.partials.delete-user-form')
+            </x-ui.card>
+        @endif
     </div>
 </x-app-layout>
