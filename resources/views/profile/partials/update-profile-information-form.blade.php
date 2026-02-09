@@ -30,7 +30,7 @@
                 id="email"
                 name="email"
                 type="email"
-                class="mt-1 block w-full {{ $isKasir ? 'bg-moka-soft/60 text-moka-muted' : '' }}"
+                class="mt-1 block w-full {{ $isKasir ? 'bg-moka-soft/60 text-moka-ink' : '' }}"
                 :value="old('email', $user->email)"
                 required
                 autocomplete="username"
@@ -56,19 +56,6 @@
                 @endif
             @endif
         </div>
-
-        @if($isKasir)
-            <div>
-                <x-input-label for="biodata" :value="'Biodata'" />
-                <textarea
-                    id="biodata"
-                    rows="3"
-                    class="mt-1 block w-full rounded-xl border-moka-line bg-moka-soft/60 text-sm text-moka-muted focus:border-moka-primary focus:ring-moka-primary/20"
-                    readonly
-                >{{ $user->biodata }}</textarea>
-                <p class="mt-2 text-xs text-moka-muted">Biodata diisi oleh admin.</p>
-            </div>
-        @endif
 
         <div class="flex items-center gap-3">
             <button type="submit" class="moka-btn">Simpan</button>

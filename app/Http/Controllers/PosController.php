@@ -111,6 +111,39 @@ class PosController extends Controller
         ]);
     }
 
+    public function cancelOpenBill(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'open_bill_id' => ['required', 'integer'],
+        ]);
+
+        $openBill = Order::query()
+            ->whereKey($validated['open_bill_id'])
+            ->where('status', 'OPEN_BILL')
+            ->where('user_id', $request->user()->id)
+            ->with('items.product')
+            ->first();
+
+        if (! $openBill) {
+            return response()->json([
+                'message' => 'Open bill tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::transaction(function () use ($openBill) {
+            $this->restoreStockFromOrder($openBill);
+            $openBill->update([
+                'status' => 'VOID',
+                'payment_method' => 'CANCELED',
+                'ordered_at' => now(),
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Open bill berhasil dibatalkan.',
+        ]);
+    }
+
     public function checkout(CheckoutRequest $request): JsonResponse
     {
         $order = $this->persistOrderFromPayload(

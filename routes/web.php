@@ -39,6 +39,7 @@ Route::middleware(['auth', 'role:kasir'])
     ->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
         Route::post('/open-bill', [PosController::class, 'saveOpenBill'])->name('open-bill.save');
+        Route::post('/open-bill/cancel', [PosController::class, 'cancelOpenBill'])->name('open-bill.cancel');
         Route::post('/checkout', [PosController::class, 'checkout'])->name('checkout');
         Route::get('/history', [PosController::class, 'history'])->name('history');
         Route::get('/history/{order}', [PosController::class, 'show'])->name('show');

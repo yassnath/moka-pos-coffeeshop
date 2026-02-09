@@ -16,12 +16,6 @@
     </div>
 
     <div>
-        <x-input-label for="biodata" :value="'Biodata'" />
-        <textarea id="biodata" name="biodata" rows="3" class="mt-1 block w-full rounded-xl border-moka-line text-sm text-moka-ink focus:border-moka-primary focus:ring-moka-primary/20">{{ old('biodata', $cashier->biodata ?? '') }}</textarea>
-        <x-input-error :messages="$errors->get('biodata')" class="mt-1" />
-    </div>
-
-    <div>
         <x-input-label for="password" :value="'Password'" />
         <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" :required="!$isEdit" autocomplete="new-password" />
         @if($isEdit)

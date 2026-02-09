@@ -67,6 +67,7 @@
             paymentMethods: {{ Illuminate\Support\Js::from($paymentPayload) }},
             checkoutUrl: @js(route('pos.checkout')),
             saveOpenBillUrl: @js(route('pos.open-bill.save')),
+            cancelOpenBillUrl: @js(route('pos.open-bill.cancel')),
             historyUrl: @js(route('pos.history')),
             posIndexUrl: @js(route('pos.index')),
             openBills: {{ Illuminate\Support\Js::from($openBillPayload) }},
@@ -271,13 +272,6 @@
                     </div>
 
                     <div class="shrink-0 border-t border-moka-line bg-white/90">
-                        <template x-if="checkoutError">
-                            <p class="mx-3 mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" x-text="checkoutError"></p>
-                        </template>
-                        <template x-if="noticeMessage">
-                            <p class="mx-3 mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700" x-text="noticeMessage"></p>
-                        </template>
-
                         <div class="grid gap-2 px-3 py-2.5">
                             <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="saveOpenBill()">
                                 <span x-text="editingOpenBillId ? 'Update Open Bill' : 'Simpan Open Bill'"></span>
@@ -369,7 +363,7 @@
                 <div class="moka-modal-header">
                     <div>
                         <h3 class="moka-modal-title">Konfirmasi Cancel Bill</h3>
-                        <p class="moka-modal-subtitle">Apakah anda yakin ingin cancel bill ini?</p>
+                        <p class="moka-modal-subtitle">Apakah anda yakin ingin cancel?</p>
                     </div>
                     <button type="button" class="moka-modal-close" @click="cancelBillOpen = false" aria-label="Tutup popup">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -380,6 +374,24 @@
                 <div class="moka-modal-footer">
                     <button type="button" class="moka-btn-secondary" @click="cancelBillOpen = false">Tidak</button>
                     <button type="button" class="moka-btn-danger" @click="confirmCancelBill()">Ya</button>
+                </div>
+            </div>
+        </x-ui.modal>
+        <x-ui.modal name="alertOpen" maxWidth="md">
+            <div class="moka-modal-content">
+                <div class="moka-modal-header">
+                    <div>
+                        <h3 class="moka-modal-title" x-text="alertTitle"></h3>
+                        <p class="moka-modal-subtitle" x-text="alertMessage"></p>
+                    </div>
+                    <button type="button" class="moka-modal-close" @click="closeAlert()" aria-label="Tutup popup">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="moka-modal-footer">
+                    <button type="button" :class="alertTone === 'error' ? 'moka-btn-danger' : (alertTone === 'warning' ? 'moka-btn-secondary' : 'moka-btn')" @click="closeAlert()">OK</button>
                 </div>
             </div>
         </x-ui.modal>
@@ -606,9 +618,6 @@
                             </div>
                         </div>
 
-                        <template x-if="checkoutError">
-                            <p class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" x-text="checkoutError"></p>
-                        </template>
                     </div>
                 </div>
 
@@ -633,6 +642,7 @@
                 paymentMethods: config.paymentMethods,
                 checkoutUrl: config.checkoutUrl,
                 saveOpenBillUrl: config.saveOpenBillUrl,
+                cancelOpenBillUrl: config.cancelOpenBillUrl,
                 historyUrl: config.historyUrl,
                 posIndexUrl: config.posIndexUrl,
                 openBills: config.openBills ?? [],
@@ -647,8 +657,11 @@
                 orderNotes: '',
                 selectedPaymentMethodId: null,
                 cashReceived: '',
-                checkoutError: '',
-                noticeMessage: '',
+                alertOpen: false,
+                alertTitle: '',
+                alertMessage: '',
+                alertTone: 'success',
+                alertOnClose: null,
                 customizeOpen: false,
                 customizeMode: 'new',
                 customizeIndex: null,
@@ -705,6 +718,7 @@
                             this.openBillsOpen = false;
                             this.openBillSavedOpen = false;
                             this.cancelBillOpen = false;
+                            this.alertOpen = false;
                             this.confirmPaymentOpen = false;
                             this.paymentOpen = false;
                         }
@@ -724,6 +738,23 @@
                         minute: '2-digit',
                         second: '2-digit',
                     }).format(new Date());
+                },
+
+                showAlert(title, message, tone = 'success', onClose = null) {
+                    this.alertTitle = title;
+                    this.alertMessage = message;
+                    this.alertTone = tone;
+                    this.alertOnClose = onClose;
+                    this.alertOpen = true;
+                },
+
+                closeAlert() {
+                    this.alertOpen = false;
+                    if (typeof this.alertOnClose === 'function') {
+                        const callback = this.alertOnClose;
+                        this.alertOnClose = null;
+                        callback();
+                    }
                 },
 
                 formatDateTime(value) {
@@ -892,17 +923,14 @@
                         notes: item.notes || '',
                     }));
 
-                    this.noticeMessage = `Open Bill #${this.editingOpenBillId} berhasil dimuat.`;
-                    this.checkoutError = '';
+                    this.showAlert('Open Bill', `Open Bill #${this.editingOpenBillId} berhasil dimuat.`, 'success');
                 },
 
                 selectProduct(product) {
                     if (this.isOutOfStock(product)) {
-                        this.checkoutError = `Stok ${product.name} sudah habis.`;
+                        this.showAlert('Stok tidak cukup', `Stok ${product.name} sudah habis.`, 'warning');
                         return;
                     }
-
-                    this.checkoutError = '';
 
                     if (product.variants.length > 0) {
                         this.openCustomizeForNew(product);
@@ -964,7 +992,7 @@
                     if (this.selectedProduct.track_stock) {
                         const reserved = this.reservedQty(this.selectedProduct.id, this.customizeMode === 'edit' ? this.customizeIndex : null);
                         if ((reserved + this.itemQty) > this.selectedProduct.stock_qty) {
-                            this.checkoutError = `Stok ${this.selectedProduct.name} tidak cukup.`;
+                            this.showAlert('Stok tidak cukup', `Stok ${this.selectedProduct.name} tidak cukup.`, 'warning');
                             return;
                         }
                     }
@@ -1005,7 +1033,7 @@
                         const product = this.products.find((productItem) => productItem.id === existing.product_id);
                         const newQty = existing.qty + item.qty;
                         if (product?.track_stock && newQty > product.stock_qty) {
-                            this.checkoutError = `Stok ${product.name} tidak cukup.`;
+                            this.showAlert('Stok tidak cukup', `Stok ${product.name} tidak cukup.`, 'warning');
                             return;
                         }
                         existing.qty = newQty;
@@ -1062,7 +1090,7 @@
                     const item = this.cart[index];
                     const product = this.products.find((productItem) => productItem.id === item.product_id);
                     if (product?.track_stock && (this.reservedQty(product.id, index) + item.qty + 1) > product.stock_qty) {
-                        this.checkoutError = `Stok ${product.name} tidak cukup.`;
+                        this.showAlert('Stok tidak cukup', `Stok ${product.name} tidak cukup.`, 'warning');
                         return;
                     }
                     item.qty += 1;
@@ -1088,8 +1116,6 @@
                     this.service = '';
                     this.orderNotes = '';
                     this.cashReceived = '';
-                    this.checkoutError = '';
-                    this.noticeMessage = '';
                     this.editingOpenBillId = null;
                     this.mobileTab = this.isMobile() ? 'menu' : this.mobileTab;
                 },
@@ -1099,20 +1125,50 @@
                     this.resetBillState();
                 },
 
-                confirmCancelBill() {
+                async confirmCancelBill() {
                     this.cancelBillOpen = false;
+
+                    if (this.editingOpenBillId) {
+                        try {
+                            const response = await fetch(this.cancelOpenBillUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                },
+                                body: JSON.stringify({
+                                    open_bill_id: this.editingOpenBillId,
+                                }),
+                            });
+
+                            const data = await response.json();
+                            if (!response.ok) {
+                                this.showAlert('Gagal', data.message || 'Gagal membatalkan open bill.', 'error');
+                                return;
+                            }
+
+                            this.openBills = this.openBills.filter((bill) => bill.id !== this.editingOpenBillId);
+                            this.resetBillState();
+                            this.showAlert('Berhasil', 'Open bill berhasil dibatalkan.', 'success');
+                            return;
+                        } catch (error) {
+                            this.showAlert('Gagal', 'Terjadi kesalahan jaringan saat membatalkan open bill.', 'error');
+                            return;
+                        }
+                    }
+
                     this.resetBillState();
+                    this.showAlert('Dibatalkan', 'Pesanan berhasil dibatalkan.', 'success');
                 },
 
                 async saveOpenBill() {
                     if (this.cart.length === 0) {
-                        this.checkoutError = 'Keranjang masih kosong.';
+                        this.showAlert('Validasi', 'Keranjang masih kosong.', 'warning');
                         return;
                     }
 
                     const wasUpdating = Boolean(this.editingOpenBillId);
-                    this.checkoutError = '';
-                    this.noticeMessage = '';
                     this.isSubmitting = true;
 
                     try {
@@ -1145,15 +1201,14 @@
                         if (!response.ok) {
                             if (data.errors) {
                                 const firstError = Object.values(data.errors)[0];
-                                this.checkoutError = Array.isArray(firstError) ? firstError[0] : 'Simpan open bill gagal.';
+                                this.showAlert('Open Bill gagal', Array.isArray(firstError) ? firstError[0] : 'Simpan open bill gagal.', 'error');
                             } else {
-                                this.checkoutError = data.message || 'Simpan open bill gagal.';
+                                this.showAlert('Open Bill gagal', data.message || 'Simpan open bill gagal.', 'error');
                             }
                             return;
                         }
 
                         this.editingOpenBillId = data.open_bill_id;
-                        this.noticeMessage = '';
                         const nowIso = new Date().toISOString();
                         const existingBill = this.openBills.find((bill) => bill.id === data.open_bill_id);
 
@@ -1175,7 +1230,7 @@
                         this.openBillSavedMessage = wasUpdating ? 'bill berhasil di update' : 'Open Bill berhasil ditambahkan';
                         this.openBillSavedOpen = true;
                     } catch (error) {
-                        this.checkoutError = 'Terjadi kesalahan jaringan saat menyimpan open bill.';
+                        this.showAlert('Open Bill gagal', 'Terjadi kesalahan jaringan saat menyimpan open bill.', 'error');
                     } finally {
                         this.isSubmitting = false;
                     }
@@ -1183,12 +1238,10 @@
 
                 openPayment() {
                     if (this.cart.length === 0) {
-                        this.checkoutError = 'Keranjang masih kosong.';
+                        this.showAlert('Validasi', 'Keranjang masih kosong.', 'warning');
                         return;
                     }
 
-                    this.checkoutError = '';
-                    this.noticeMessage = '';
                     this.confirmPaymentOpen = true;
                 },
 
@@ -1204,11 +1257,10 @@
 
                 async submitCheckout() {
                     if (this.cart.length === 0 || !this.selectedPaymentMethodId) {
-                        this.checkoutError = 'Data pembayaran belum lengkap.';
+                        this.showAlert('Validasi', 'Data pembayaran belum lengkap.', 'warning');
                         return;
                     }
 
-                    this.checkoutError = '';
                     this.isSubmitting = true;
 
                     try {
@@ -1243,16 +1295,16 @@
                         if (!response.ok) {
                             if (data.errors) {
                                 const firstError = Object.values(data.errors)[0];
-                                this.checkoutError = Array.isArray(firstError) ? firstError[0] : 'Checkout gagal.';
+                                this.showAlert('Checkout gagal', Array.isArray(firstError) ? firstError[0] : 'Checkout gagal.', 'error');
                             } else {
-                                this.checkoutError = data.message || 'Checkout gagal.';
+                                this.showAlert('Checkout gagal', data.message || 'Checkout gagal.', 'error');
                             }
                             return;
                         }
 
                         window.location.href = data.redirect;
                     } catch (error) {
-                        this.checkoutError = 'Terjadi kesalahan jaringan saat checkout.';
+                        this.showAlert('Checkout gagal', 'Terjadi kesalahan jaringan saat checkout.', 'error');
                     } finally {
                         this.isSubmitting = false;
                     }
