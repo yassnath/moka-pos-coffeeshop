@@ -9,9 +9,24 @@
 
     <div x-data="{
         viewMode: localStorage.getItem('admin_products_view_mode') || 'table',
+        saveOpen: @js((bool) session('success')),
+        saveMessage: @js(session('success')),
+        deleteOpen: false,
+        deleteLabel: '',
+        deleteForm: null,
         setView(mode) {
             this.viewMode = mode;
             localStorage.setItem('admin_products_view_mode', mode);
+        },
+        openDelete(form, label) {
+            this.deleteForm = form;
+            this.deleteLabel = label;
+            this.deleteOpen = true;
+        },
+        confirmDelete() {
+            if (this.deleteForm) {
+                this.deleteForm.submit();
+            }
         }
     }" class="space-y-4">
         <x-ui.card>
@@ -75,10 +90,10 @@
                                 </td>
                                 <td class="text-center">
                                     <a href="{{ route('admin.products.edit', $product) }}" class="text-sm font-semibold text-moka-primary hover:text-moka-ink">Edit</a>
-                                    <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus produk ini?')">
+                                    <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline-block" x-ref="deleteForm{{ $product->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="ml-3 text-sm font-semibold text-red-600 hover:text-red-700">Hapus</button>
+                                        <button type="button" class="ml-3 text-sm font-semibold text-red-600 hover:text-red-700" @click.prevent="openDelete($refs.deleteForm{{ $product->id }}, @js($product->name))">Hapus</button>
                                     </form>
                                 </td>
                             </tr>
@@ -132,10 +147,10 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.products.edit', $product) }}" class="moka-btn-secondary px-4">Edit</a>
-                            <form action="{{ route('admin.products.destroy', $product) }}" method="POST" onsubmit="return confirm('Hapus produk ini?')">
+                            <form action="{{ route('admin.products.destroy', $product) }}" method="POST" x-ref="deleteCardForm{{ $product->id }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="moka-btn-secondary border-red-300 px-4 text-red-600 hover:bg-red-50">Hapus</button>
+                                <button type="button" class="moka-btn-secondary border-red-300 px-4 text-red-600 hover:bg-red-50" @click.prevent="openDelete($refs.deleteCardForm{{ $product->id }}, @js($product->name))">Hapus</button>
                             </form>
                         </div>
                     </div>
@@ -151,4 +166,43 @@
     <div class="mt-4">
         {{ $products->links() }}
     </div>
+
+    <x-ui.modal name="saveOpen" maxWidth="md">
+        <div class="moka-modal-content">
+            <div class="moka-modal-header">
+                <div>
+                    <h3 class="moka-modal-title">Berhasil</h3>
+                    <p class="moka-modal-subtitle" x-text="saveMessage"></p>
+                </div>
+                <button type="button" class="moka-modal-close" @click="saveOpen = false" aria-label="Tutup popup">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="moka-modal-footer">
+                <button type="button" class="moka-btn" @click="saveOpen = false">OK</button>
+            </div>
+        </div>
+    </x-ui.modal>
+
+    <x-ui.modal name="deleteOpen" maxWidth="md">
+        <div class="moka-modal-content">
+            <div class="moka-modal-header">
+                <div>
+                    <h3 class="moka-modal-title">Konfirmasi Hapus</h3>
+                    <p class="moka-modal-subtitle">Hapus <span class="font-semibold" x-text="deleteLabel"></span>?</p>
+                </div>
+                <button type="button" class="moka-modal-close" @click="deleteOpen = false" aria-label="Tutup popup">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="moka-modal-footer">
+                <button type="button" class="moka-btn-secondary" @click="deleteOpen = false">Batal</button>
+                <button type="button" class="moka-btn-danger" @click="confirmDelete()">Hapus</button>
+            </div>
+        </div>
+    </x-ui.modal>
 </x-app-layout>

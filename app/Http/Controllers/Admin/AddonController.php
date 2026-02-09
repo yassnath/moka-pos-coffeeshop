@@ -38,7 +38,7 @@ class AddonController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()->route('admin.addons.index')->with('success', 'Add-on berhasil dibuat.');
+        return redirect()->route('admin.addons.index')->with('success', 'Berhasil menyimpan add on.');
     }
 
     public function edit(Addon $addon): View
@@ -62,7 +62,7 @@ class AddonController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()->route('admin.addons.index')->with('success', 'Add-on berhasil diperbarui.');
+        return redirect()->route('admin.addons.index')->with('success', 'Berhasil menyimpan add on.');
     }
 
     public function destroy(Addon $addon): RedirectResponse

@@ -19,6 +19,7 @@
                 <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kategori</a>
                 <a href="{{ route('admin.addons.index') }}" class="{{ request()->routeIs('admin.addons.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Add-on</a>
                 <a href="{{ route('admin.payment-methods.index') }}" class="{{ request()->routeIs('admin.payment-methods.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Metode Bayar</a>
+                <a href="{{ route('admin.cashiers.index') }}" class="{{ request()->routeIs('admin.cashiers.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kasir</a>
             @else
                 <a href="{{ route('pos.index') }}" class="{{ request()->routeIs('pos.index') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">POS</a>
                 <a href="{{ route('pos.history') }}" class="{{ request()->routeIs('pos.history') || request()->routeIs('pos.show') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Riwayat</a>
@@ -48,6 +49,7 @@
                 <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kategori</a>
                 <a href="{{ route('admin.addons.index') }}" class="{{ request()->routeIs('admin.addons.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Add-on</a>
                 <a href="{{ route('admin.payment-methods.index') }}" class="{{ request()->routeIs('admin.payment-methods.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Metode Bayar</a>
+                <a href="{{ route('admin.cashiers.index') }}" class="{{ request()->routeIs('admin.cashiers.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kasir</a>
             @else
                 <a href="{{ route('pos.index') }}" class="{{ request()->routeIs('pos.index') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">POS</a>
                 <a href="{{ route('pos.history') }}" class="{{ request()->routeIs('pos.history') || request()->routeIs('pos.show') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Riwayat</a>

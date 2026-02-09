@@ -38,7 +38,7 @@ class PaymentMethodController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()->route('admin.payment-methods.index')->with('success', 'Metode bayar berhasil dibuat.');
+        return redirect()->route('admin.payment-methods.index')->with('success', 'Berhasil menyimpan add on.');
     }
 
     public function edit(PaymentMethod $paymentMethod): View
@@ -62,7 +62,7 @@ class PaymentMethodController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()->route('admin.payment-methods.index')->with('success', 'Metode bayar berhasil diperbarui.');
+        return redirect()->route('admin.payment-methods.index')->with('success', 'Berhasil menyimpan add on.');
     }
 
     public function destroy(PaymentMethod $paymentMethod): RedirectResponse

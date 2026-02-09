@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <h1 class="font-display text-2xl font-bold text-moka-ink">Metode Pembayaran</h1>
-            <p class="text-sm text-moka-muted">Konfigurasi metode pembayaran aktif untuk checkout kasir.</p>
+            <h1 class="font-display text-2xl font-bold text-moka-ink">Kelola Kasir</h1>
+            <p class="text-sm text-moka-muted">Tambah, ubah, dan hapus akun kasir.</p>
         </div>
-        <a href="{{ route('admin.payment-methods.create') }}" class="moka-btn">Tambah Metode</a>
+        <a href="{{ route('admin.cashiers.create') }}" class="moka-btn">Tambah Kasir</a>
     </x-slot>
 
     <div x-data="{
@@ -30,39 +30,39 @@
                     <thead>
                         <tr>
                             <th>Nama</th>
-                            <th>Kode</th>
-                            <th>Status</th>
+                            <th>Email</th>
+                            <th>Dibuat</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($paymentMethods as $paymentMethod)
+                        @forelse ($cashiers as $cashier)
                             <tr>
-                                <td class="font-semibold">{{ $paymentMethod->name }}</td>
-                                <td class="uppercase text-moka-muted">{{ $paymentMethod->code }}</td>
-                                <td>
-                                    <x-ui.badge :variant="$paymentMethod->is_active ? 'success' : 'warning'">
-                                        {{ $paymentMethod->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </x-ui.badge>
-                                </td>
+                                <td class="font-semibold">{{ $cashier->name }}</td>
+                                <td class="text-moka-muted">{{ $cashier->email }}</td>
+                                <td>{{ optional($cashier->created_at)->format('d M Y') }}</td>
                                 <td class="text-center">
-                                    <a href="{{ route('admin.payment-methods.edit', $paymentMethod) }}" class="text-sm font-semibold text-moka-primary hover:text-moka-ink">Edit</a>
-                                    <form action="{{ route('admin.payment-methods.destroy', $paymentMethod) }}" method="POST" class="inline-block" x-ref="deleteForm{{ $paymentMethod->id }}">
+                                    <a href="{{ route('admin.cashiers.edit', $cashier) }}" class="text-sm font-semibold text-moka-primary hover:text-moka-ink">Edit</a>
+                                    <form action="{{ route('admin.cashiers.destroy', $cashier) }}" method="POST" class="inline-block" x-ref="deleteForm{{ $cashier->id }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" class="ml-3 text-sm font-semibold text-red-600 hover:text-red-700" @click.prevent="openDelete($refs.deleteForm{{ $paymentMethod->id }}, @js($paymentMethod->name))">Hapus</button>
+                                        <button type="button" class="ml-3 text-sm font-semibold text-red-600 hover:text-red-700" @click.prevent="openDelete($refs.deleteForm{{ $cashier->id }}, @js($cashier->name))">Hapus</button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-10 text-center text-sm text-moka-muted">Belum ada metode pembayaran.</td>
+                                <td colspan="4" class="py-10 text-center text-sm text-moka-muted">Belum ada kasir.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </x-ui.card>
+
+        <div>
+            {{ $cashiers->links() }}
+        </div>
 
         <x-ui.modal name="saveOpen" maxWidth="md">
             <div class="moka-modal-content">
@@ -102,9 +102,5 @@
                 </div>
             </div>
         </x-ui.modal>
-    </div>
-
-    <div class="mt-4">
-        {{ $paymentMethods->links() }}
     </div>
 </x-app-layout>

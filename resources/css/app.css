@@ -85,6 +85,10 @@
         background-image: none;
     }
 
+    .moka-chip-active:hover {
+        @apply border-transparent bg-moka-primary text-white;
+    }
+
     .moka-table {
         @apply min-w-full divide-y divide-moka-line;
     }

@@ -56,7 +56,7 @@ class ProductController extends Controller
             $this->syncVariants($product, $validated['variants'] ?? []);
         });
 
-        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil dibuat.');
+        return redirect()->route('admin.products.index')->with('success', 'Berhasil menyimpan produk.');
     }
 
     public function edit(Product $product): View
@@ -97,7 +97,7 @@ class ProductController extends Controller
             $this->syncVariants($product, $validated['variants'] ?? []);
         });
 
-        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil diperbarui.');
+        return redirect()->route('admin.products.index')->with('success', 'Berhasil menyimpan produk.');
     }
 
     public function destroy(Product $product): RedirectResponse

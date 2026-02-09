@@ -36,7 +36,7 @@ class CategoryController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil dibuat.');
+        return redirect()->route('admin.categories.index')->with('success', 'Berhasil menyimpan kategori.');
     }
 
     public function edit(Category $category): View
@@ -58,7 +58,7 @@ class CategoryController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diperbarui.');
+        return redirect()->route('admin.categories.index')->with('success', 'Berhasil menyimpan kategori.');
     }
 
     public function destroy(Category $category): RedirectResponse

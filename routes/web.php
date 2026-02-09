@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AddonController;
+use App\Http\Controllers\Admin\CashierController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PaymentMethodController;
@@ -59,6 +60,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('products', ProductController::class)->except(['show']);
         Route::resource('addons', AddonController::class)->except(['show']);
         Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
+        Route::resource('cashiers', CashierController::class)->except(['show']);
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
