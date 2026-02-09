@@ -8,8 +8,6 @@
     </x-slot>
 
     <div x-data="{
-        saveOpen: @js((bool) session('success')),
-        saveMessage: @js(session('success')),
         deleteOpen: false,
         deleteLabel: '',
         deleteForm: null,
@@ -63,25 +61,6 @@
                 </table>
             </div>
         </x-ui.card>
-
-        <x-ui.modal name="saveOpen" maxWidth="md">
-            <div class="moka-modal-content">
-                <div class="moka-modal-header">
-                    <div>
-                        <h3 class="moka-modal-title">Berhasil</h3>
-                        <p class="moka-modal-subtitle" x-text="saveMessage"></p>
-                    </div>
-                    <button type="button" class="moka-modal-close" @click="saveOpen = false" aria-label="Tutup popup">
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M6 6l12 12M18 6l-12 12" stroke-width="1.8" stroke-linecap="round"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="moka-modal-footer">
-                    <button type="button" class="moka-btn" @click="saveOpen = false">OK</button>
-                </div>
-            </div>
-        </x-ui.modal>
 
         <x-ui.modal name="deleteOpen" maxWidth="md">
             <div class="moka-modal-content">
