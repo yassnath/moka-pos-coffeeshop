@@ -24,7 +24,7 @@
     }" class="space-y-4">
         <x-ui.card padding="p-0 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="moka-table">
+                <table class="moka-table moka-table-mobile">
                     <thead>
                         <tr>
                             <th>Nama</th>

@@ -9,7 +9,7 @@
                 <a href="{{ route('orders.receipt', $order) }}" class="moka-btn-secondary">Cetak Ulang</a>
             @endif
             @can('void', $order)
-                <button type="button" class="moka-btn-secondary border-red-300 text-red-600 hover:bg-red-50" @click="cancelOpen = true">Batalkan</button>
+                <button type="button" class="moka-btn-danger" @click="cancelOpen = true">Batalkan</button>
             @endcan
         </div>
     </x-slot>
@@ -111,3 +111,4 @@
         </x-ui.card>
     </div>
 </x-app-layout>
+

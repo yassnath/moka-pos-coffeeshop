@@ -2,13 +2,13 @@
     $user = auth()->user();
 @endphp
 
-<nav x-data="{ open: false, logoutOpen: false }" class="sticky top-0 z-40 border-b border-moka-line/80 bg-white/85 backdrop-blur-md">
+<nav x-data="{ open: false, logoutOpen: false }" class="sticky top-0 z-40 border-b border-moka-line/80 bg-moka-card/90 backdrop-blur-md">
     <div class="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-3">
             <img src="{{ asset('logo.png') }}" alt="Moka POS" class="h-10 w-10 rounded-xl border border-moka-line object-cover">
             <div class="leading-tight">
                 <p class="font-display text-base font-bold text-moka-ink">Moka Kasir</p>
-                <p class="text-xs text-moka-muted">Coffeeshop POS</p>
+                <p class="text-xs text-moka-muted">Bar POS</p>
             </div>
         </a>
 
@@ -34,7 +34,7 @@
             <button type="button" class="moka-btn-danger px-4" @click="logoutOpen = true">Logout</button>
         </div>
 
-        <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-moka-line bg-white lg:hidden" @click="open = !open" aria-label="Menu">
+        <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-moka-line bg-moka-card lg:hidden" @click="open = !open" aria-label="Menu">
             <svg x-show="!open" class="h-5 w-5 text-moka-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M4 7h16M4 12h16M4 17h16" stroke-width="1.8" stroke-linecap="round"></path>
             </svg>
@@ -44,7 +44,7 @@
         </button>
     </div>
 
-    <div x-show="open" x-transition class="border-t border-moka-line bg-white px-4 py-3 lg:hidden">
+    <div x-show="open" x-transition class="border-t border-moka-line bg-moka-card px-4 py-3 lg:hidden">
         <div class="grid gap-2">
             @if($user?->isAdmin())
                 <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Laporan</a>
@@ -97,3 +97,5 @@
         </div>
     </x-ui.modal>
 </nav>
+
+

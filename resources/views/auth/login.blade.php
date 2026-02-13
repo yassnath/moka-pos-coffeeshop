@@ -146,13 +146,13 @@
 
                 alertToneClass() {
                     if (this.alertType === 'error') {
-                        return 'border-red-200 bg-red-50 text-red-700';
+                        return 'moka-alert-error';
                     }
                     if (this.alertType === 'warning') {
-                        return 'border-amber-200 bg-amber-50 text-amber-700';
+                        return 'moka-alert-warning';
                     }
 
-                    return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+                    return 'moka-alert-success';
                 },
 
                 alertSubtitle() {
@@ -296,3 +296,4 @@
         }
     </script>
 </x-guest-layout>
+

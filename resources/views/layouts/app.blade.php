@@ -11,7 +11,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body>
+    <body class="body-gradient-page">
         <div class="page-shell">
             <div class="bg-blob -left-20 top-10 h-64 w-64 bg-moka-accent/35"></div>
             <div class="bg-blob -right-24 top-20 h-72 w-72 bg-moka-primary/20"></div>
@@ -55,3 +55,6 @@
         </div>
     </body>
 </html>
+
+
+

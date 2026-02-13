@@ -11,7 +11,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body>
+    <body class="body-gradient-page">
         <div class="page-shell">
             <div class="relative flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
                 <div class="bg-blob -left-16 top-16 h-60 w-60 bg-moka-accent/35"></div>
@@ -20,16 +20,16 @@
                 <div class="grid w-full max-w-5xl gap-5 lg:grid-cols-[1.1fr_1fr]">
                     <section class="glass-card hidden p-10 lg:flex lg:flex-col lg:justify-between">
                         <div>
-                            <div class="mb-8 inline-flex items-center gap-3 rounded-full border border-moka-line bg-white px-4 py-2">
+                            <div class="mb-8 inline-flex items-center gap-3 rounded-full border border-moka-line bg-moka-soft px-4 py-2">
                                 <img src="{{ asset('logo.png') }}" alt="Moka POS" class="h-8 w-8 rounded-lg object-cover">
                                 <span class="font-display text-sm font-semibold text-moka-primary">Moka Kasir</span>
                             </div>
-                            <h1 class="font-display text-4xl font-bold leading-tight text-moka-ink">POS coffeeshop yang cepat, rapi, dan nyaman dipakai kasir.</h1>
+                            <h1 class="font-display text-4xl font-bold leading-tight text-moka-ink">POS Bar yang cepat, rapi, dan nyaman dipakai kasir.</h1>
                             <p class="mt-4 max-w-md text-sm leading-relaxed text-moka-muted">
                                 Kelola transaksi harian, menu, dan laporan dalam satu tampilan yang clean ala Moka POS.
                             </p>
                         </div>
-                        <div class="rounded-2xl border border-moka-line bg-white/80 p-4 text-xs text-moka-muted">
+                        <div class="rounded-2xl border border-moka-line bg-moka-soft/80 p-4 text-xs text-moka-muted">
                             Dibuat untuk operasional outlet harian dengan fokus speed checkout.
                         </div>
                     </section>
@@ -47,3 +47,6 @@
         </div>
     </body>
 </html>
+
+
+

@@ -21,7 +21,7 @@ class PosDemoSeeder extends Seeder
         $admin = User::query()->updateOrCreate(
             ['email' => 'admin@coffeeshop.test'],
             [
-                'name' => 'Admin Coffeeshop',
+                'name' => 'Admin Bar',
                 'password' => Hash::make('password'),
                 'role' => User::ROLE_ADMIN,
                 'email_verified_at' => now(),
@@ -31,7 +31,7 @@ class PosDemoSeeder extends Seeder
         $kasir = User::query()->updateOrCreate(
             ['email' => 'kasir@coffeeshop.test'],
             [
-                'name' => 'Kasir Coffeeshop',
+                'name' => 'Kasir Bar',
                 'password' => Hash::make('password'),
                 'role' => User::ROLE_KASIR,
                 'email_verified_at' => now(),
@@ -155,3 +155,4 @@ class PosDemoSeeder extends Seeder
         unset($admin, $kasir);
     }
 }
+

@@ -105,7 +105,7 @@
 
         <div class="mt-4 grid gap-3">
             <template x-for="(variant, index) in variants" :key="index">
-                <div class="rounded-xl border border-moka-line bg-white p-3">
+                <div class="rounded-xl border border-moka-line bg-moka-card p-3">
                     <div class="grid gap-3 md:grid-cols-4">
                         <div>
                             <label class="moka-label">Nama</label>
@@ -130,7 +130,7 @@
                 </div>
             </template>
 
-            <div x-show="variants.length === 0" class="rounded-xl border border-dashed border-moka-line bg-white px-4 py-6 text-center text-sm text-moka-muted">
+            <div x-show="variants.length === 0" class="rounded-xl border border-dashed border-moka-line bg-moka-card px-4 py-6 text-center text-sm text-moka-muted">
                 Belum ada varian. Tambahkan jika produk punya ukuran/opsi.
             </div>
         </div>
@@ -175,3 +175,4 @@
         };
     }
 </script>
+

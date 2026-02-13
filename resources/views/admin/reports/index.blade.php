@@ -44,7 +44,7 @@
                 <h2 class="font-display text-lg font-bold text-moka-ink">Breakdown Metode Bayar</h2>
             </div>
             <div class="overflow-x-auto">
-                <table class="moka-table">
+                <table class="moka-table moka-table-mobile">
                     <thead>
                         <tr>
                             <th>Metode</th>
@@ -74,7 +74,7 @@
                 <h2 class="font-display text-lg font-bold text-moka-ink">Top 4 Menu</h2>
             </div>
             <div class="overflow-x-auto">
-                <table class="moka-table">
+                <table class="moka-table moka-table-mobile">
                     <thead>
                         <tr>
                             <th>Menu</th>
@@ -107,7 +107,7 @@
             <h2 class="font-display text-lg font-bold text-moka-ink">Daftar Transaksi</h2>
         </div>
         <div class="overflow-x-auto">
-            <table class="moka-table">
+            <table class="moka-table moka-table-mobile">
                 <thead>
                     <tr>
                         <th>Invoice</th>
@@ -172,7 +172,7 @@
                                     @can('void', $order)
                                         <button
                                             type="button"
-                                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:border-red-300 hover:bg-red-50"
+                                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#A84D4D] text-[#FF9B9B] transition hover:border-[#C05D5D] hover:bg-[#321B1B]"
                                             title="Batalkan"
                                             aria-label="Batalkan"
                                             @click="cancelTarget = '{{ route('admin.orders.void', $order) }}'; cancelOpen = true"
@@ -222,3 +222,4 @@
         {{ $orders->links() }}
     </div>
 </x-app-layout>
+

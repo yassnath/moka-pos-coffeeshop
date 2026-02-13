@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div>
             <h1 class="font-display text-2xl font-bold text-moka-ink">Produk Menu</h1>
-            <p class="text-sm text-moka-muted">Kelola menu, varian, stok, dan status aktif produk coffeeshop.</p>
+            <p class="text-sm text-moka-muted">Kelola menu, varian, stok, dan status aktif produk Bar.</p>
         </div>
         <a href="{{ route('admin.products.create') }}" class="moka-btn">Tambah Produk</a>
     </x-slot>
@@ -34,13 +34,13 @@
                     <p class="text-xs text-moka-muted">Pilih mode tabel atau kartu.</p>
                 </div>
 
-                <div class="inline-flex rounded-xl border border-moka-line bg-white p-1">
-                    <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'table' ? 'bg-moka-primary text-white' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('table')" aria-label="Tampilan tabel">
+                <div class="inline-flex rounded-xl border border-moka-line bg-moka-card p-1">
+                    <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'table' ? 'bg-moka-primary text-[#1A1408]' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('table')" aria-label="Tampilan tabel">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M4 7h16M4 12h16M4 17h16" stroke-width="1.8" stroke-linecap="round"></path>
                         </svg>
                     </button>
-                    <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'card' ? 'bg-moka-primary text-white' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('card')" aria-label="Tampilan kartu">
+                    <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'card' ? 'bg-moka-primary text-[#1A1408]' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('card')" aria-label="Tampilan kartu">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <rect x="4" y="4" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
                             <rect x="13" y="4" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
@@ -54,7 +54,7 @@
 
         <x-ui.card x-show="viewMode === 'table'" padding="p-0 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="moka-table">
+                <table class="moka-table moka-table-mobile">
                     <thead>
                         <tr>
                             <th>Nama</th>
@@ -148,7 +148,7 @@
                             <form action="{{ route('admin.products.destroy', $product) }}" method="POST" x-ref="deleteCardForm{{ $product->id }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="moka-btn-secondary border-red-300 px-4 text-red-600 hover:bg-red-50" @click.prevent="openDelete($refs.deleteCardForm{{ $product->id }}, @js($product->name))">Hapus</button>
+                                <button type="button" class="moka-btn-danger px-4" @click.prevent="openDelete($refs.deleteCardForm{{ $product->id }}, @js($product->name))">Hapus</button>
                             </form>
                         </div>
                     </div>
@@ -185,3 +185,5 @@
         </div>
     </x-ui.modal>
 </x-app-layout>
+
+

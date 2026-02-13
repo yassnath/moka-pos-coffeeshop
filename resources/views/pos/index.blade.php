@@ -68,7 +68,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-screen overflow-hidden">
+<body class="body-gradient-page h-screen overflow-hidden">
     <div
         x-data="posPage({
             categories: {{ Illuminate\Support\Js::from($categoryPayload) }},
@@ -94,7 +94,7 @@
         <div class="bg-blob -right-20 top-20 h-80 w-80 bg-moka-primary/20"></div>
         <div class="bg-blob bottom-20 left-1/2 h-64 w-64 bg-moka-accent/20"></div>
 
-        <header class="sticky top-0 z-40 border-b border-moka-line bg-white/90 backdrop-blur">
+        <header class="sticky top-0 z-40 border-b border-moka-line bg-moka-card/90 backdrop-blur">
             <div class="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8">
                 <div class="inline-flex items-center gap-3">
                     <img src="{{ asset('logo.png') }}" alt="Moka POS" class="h-10 w-10 rounded-xl border border-moka-line object-cover">
@@ -105,7 +105,7 @@
                 </div>
 
                 <div class="hidden items-center gap-4 md:flex">
-                    <div class="rounded-full border border-moka-line bg-white px-4 py-2 text-sm font-semibold text-moka-muted" x-text="clockLabel"></div>
+                    <div class="rounded-full border border-moka-line bg-moka-card px-4 py-2 text-sm font-semibold text-moka-muted" x-text="clockLabel"></div>
                     <p class="text-sm text-moka-muted">Halo, <span class="font-semibold text-moka-ink">{{ auth()->user()->name }}</span></p>
                     <a href="{{ $isWaiter ? route('waiter.history') : route('pos.history') }}" class="moka-btn-secondary px-4">Riwayat</a>
                     <a href="{{ route('profile.edit') }}" class="moka-btn-secondary px-4">Profil</a>
@@ -165,7 +165,7 @@
                                 <template x-for="product in filteredProducts" :key="product.id">
                                     <button
                                         type="button"
-                                        class="group rounded-2xl border border-moka-line bg-white p-3 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-moka-primary/40 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                                        class="group rounded-2xl border border-moka-line bg-moka-card p-3 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-moka-primary/40 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
                                         :disabled="isOutOfStock(product)"
                                         @click="selectProduct(product)"
                                     >
@@ -197,14 +197,14 @@
                                                 <span class="inline-flex rounded-full bg-moka-soft px-2 py-1 text-[11px] font-semibold text-moka-primary">Varian</span>
                                             </template>
                                             <template x-if="addons.length > 0">
-                                                <span class="inline-flex rounded-full bg-[#ede8ff] px-2 py-1 text-[11px] font-semibold text-[#5b46b4]">Addon</span>
+                                                <span class="inline-flex rounded-full bg-moka-soft px-2 py-1 text-[11px] font-semibold text-moka-primary border border-moka-line">Addon</span>
                                             </template>
                                         </div>
                                     </button>
                                 </template>
                             </div>
 
-                            <div x-show="filteredProducts.length === 0" class="mt-10 rounded-2xl border border-dashed border-moka-line bg-white px-6 py-12 text-center text-sm text-moka-muted">
+                            <div x-show="filteredProducts.length === 0" class="mt-10 rounded-2xl border border-dashed border-moka-line bg-moka-card px-6 py-12 text-center text-sm text-moka-muted">
                                 Produk tidak ditemukan. Coba kata kunci lain.
                             </div>
                         </div>
@@ -263,14 +263,14 @@
                                 :class="cart.length === 0 ? 'max-h-[190px]' : 'flex-1 min-h-0'"
                             >
                             <template x-if="cart.length === 0">
-                                <div class="rounded-2xl border border-dashed border-moka-line bg-white px-4 py-10 text-center text-sm text-moka-muted">
+                                <div class="rounded-2xl border border-dashed border-moka-line bg-moka-card px-4 py-10 text-center text-sm text-moka-muted">
                                     Keranjang masih kosong, pilih menu dulu.
                                 </div>
                             </template>
 
                             <div class="space-y-3" x-show="cart.length > 0">
                                 <template x-for="(item, index) in cart" :key="item.uid">
-                                    <div class="rounded-xl border border-moka-line bg-white p-3">
+                                    <div class="rounded-xl border border-moka-line bg-moka-card p-3">
                                         <div class="flex items-start justify-between gap-3">
                                             <div>
                                                 <p class="font-semibold text-moka-ink" x-text="item.name"></p>
@@ -307,7 +307,7 @@
                         </div>
                     </div>
 
-                    <div class="shrink-0 border-t border-moka-line bg-white/90">
+                    <div class="shrink-0 border-t border-moka-line bg-moka-card/90">
                         <div class="grid gap-2 px-3 py-2.5">
                             @unless($isWaiter)
                                 <button type="button" class="moka-btn-secondary w-full justify-center text-base" :disabled="cart.length === 0 || isSubmitting" @click="saveOpenBill()">
@@ -347,7 +347,7 @@
             </div>
         </main>
 
-        <div class="fixed bottom-3 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-moka-line bg-white/95 p-2 shadow-lg md:hidden">
+        <div class="fixed bottom-3 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-moka-line bg-moka-card/95 p-2 shadow-lg md:hidden">
             <button type="button" class="moka-chip px-4 py-2 text-xs" :class="mobileTab === 'menu' ? 'moka-chip-active' : ''" @click="mobileTab = 'menu'">Menu</button>
             <button type="button" class="moka-chip px-4 py-2 text-xs" :class="mobileTab === 'cart' ? 'moka-chip-active' : ''" @click="mobileTab = 'cart'">
                 Cart (<span x-text="cart.length"></span>)
@@ -371,13 +371,13 @@
 
                 <div class="mt-4 max-h-[45vh] md:max-h-[50vh] space-y-2 overflow-y-auto pr-1">
                     <template x-if="openBills.length === 0">
-                        <div class="rounded-xl border border-dashed border-moka-line bg-white px-4 py-8 text-center text-sm text-moka-muted">
+                        <div class="rounded-xl border border-dashed border-moka-line bg-moka-card px-4 py-8 text-center text-sm text-moka-muted">
                             Belum ada Open Bill aktif.
                         </div>
                     </template>
 
                     <template x-for="bill in openBills" :key="bill.id">
-                        <div class="rounded-xl border border-moka-line bg-white p-3">
+                        <div class="rounded-xl border border-moka-line bg-moka-card p-3">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <p class="font-semibold text-moka-ink">Open Bill #<span x-text="bill.id"></span></p>
@@ -413,13 +413,13 @@
 
                 <div class="mt-4 max-h-[45vh] md:max-h-[50vh] space-y-2 overflow-y-auto pr-1">
                     <template x-if="waiterOrders.length === 0">
-                        <div class="rounded-xl border border-dashed border-moka-line bg-white px-4 py-8 text-center text-sm text-moka-muted">
+                        <div class="rounded-xl border border-dashed border-moka-line bg-moka-card px-4 py-8 text-center text-sm text-moka-muted">
                             Belum ada pesanan masuk.
                         </div>
                     </template>
 
                     <template x-for="order in waiterOrders" :key="order.id">
-                        <div class="rounded-xl border border-moka-line bg-white p-3">
+                        <div class="rounded-xl border border-moka-line bg-moka-card p-3">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <p class="font-semibold text-moka-ink">Pesanan #<span x-text="order.id"></span></p>
@@ -537,7 +537,7 @@
                             <p class="moka-label">Pilih Varian</p>
                             <div class="grid gap-2 sm:grid-cols-3">
                                 <template x-for="variant in selectedProduct.variants" :key="variant.id">
-                                    <button type="button" class="rounded-xl border border-moka-line p-3 text-left transition hover:border-moka-primary/40" :class="selectedVariantId === variant.id ? 'border-moka-primary bg-moka-soft/60' : 'bg-white'" @click="selectedVariantId = variant.id">
+                                    <button type="button" class="rounded-xl border border-moka-line p-3 text-left transition hover:border-moka-primary/40" :class="selectedVariantId === variant.id ? 'border-moka-primary bg-moka-soft/60' : 'bg-moka-card'" @click="selectedVariantId = variant.id">
                                         <p class="text-sm font-semibold text-moka-ink" x-text="variant.name"></p>
                                         <p class="text-xs text-moka-muted text-money" x-text="formatCurrency(resolveUnitPrice(selectedProduct, variant.id))"></p>
                                     </button>
@@ -551,7 +551,7 @@
                             <p class="moka-label">Pilih Add-on</p>
                             <div class="grid gap-2 sm:grid-cols-2">
                                 <template x-for="addon in addons" :key="addon.id">
-                                    <label class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-moka-line bg-white px-3 py-2">
+                                    <label class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-moka-line bg-moka-card px-3 py-2">
                                         <input type="checkbox" class="rounded border-moka-line text-moka-primary focus:ring-moka-primary/40" :value="addon.id" @change="toggleAddon(addon.id)" :checked="selectedAddonIds.includes(addon.id)">
                                         <span class="text-sm text-moka-ink" x-text="`${addon.name} (+${formatCurrency(addon.price)})`"></span>
                                     </label>
@@ -567,7 +567,7 @@
                         </div>
                         <div>
                             <label class="moka-label">Qty</label>
-                            <div class="inline-flex items-center rounded-full border border-moka-line bg-white">
+                            <div class="inline-flex items-center rounded-full border border-moka-line bg-moka-card">
                                 <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center text-moka-primary" @click="itemQty = Math.max(1, itemQty - 1)">-</button>
                                 <span class="min-w-10 text-center text-sm font-semibold text-moka-ink" x-text="itemQty"></span>
                                 <button type="button" class="inline-flex min-h-11 min-w-11 items-center justify-center text-moka-primary" @click="itemQty = itemQty + 1">+</button>
@@ -676,7 +676,7 @@
                             <textarea rows="2" class="w-full rounded-xl border-moka-line text-sm text-moka-ink focus:border-moka-primary focus:ring-moka-primary/20" x-model="orderNotes" placeholder="Catatan umum transaksi..."></textarea>
                         </div>
 
-                        <dl class="rounded-xl border border-moka-line bg-white p-4 text-sm text-moka-muted">
+                        <dl class="rounded-xl border border-moka-line bg-moka-card p-4 text-sm text-moka-muted">
                             <div class="flex items-center justify-between">
                                 <dt>Subtotal</dt>
                                 <dd class="text-money" x-text="formatCurrency(subtotal)"></dd>
@@ -705,7 +705,7 @@
                             <p class="moka-label">Metode Pembayaran</p>
                             <div class="grid gap-2 sm:grid-cols-2">
                                 <template x-for="method in paymentMethods" :key="method.id">
-                                    <button type="button" class="rounded-xl border border-moka-line bg-white px-4 py-3 text-left transition hover:border-moka-primary/40" :class="selectedPaymentMethodId === method.id ? 'border-moka-primary bg-moka-soft/60' : ''" @click="selectedPaymentMethodId = method.id">
+                                    <button type="button" class="rounded-xl border border-moka-line bg-moka-card px-4 py-3 text-left transition hover:border-moka-primary/40" :class="selectedPaymentMethodId === method.id ? 'border-moka-primary bg-moka-soft/60' : ''" @click="selectedPaymentMethodId = method.id">
                                         <p class="font-semibold text-moka-ink" x-text="method.name"></p>
                                         <p class="text-xs uppercase text-moka-muted" x-text="method.code"></p>
                                     </button>
@@ -714,7 +714,7 @@
                         </div>
 
                         <template x-if="isCashMethod()">
-                            <div class="space-y-3 rounded-xl border border-moka-line bg-white p-4">
+                            <div class="space-y-3 rounded-xl border border-moka-line bg-moka-card p-4">
                                 <div>
                                     <label class="moka-label">Uang Diterima</label>
                                     <input type="number" step="0.01" min="0" class="moka-input" x-model="cashReceived">
@@ -1571,3 +1571,6 @@
     </script>
 </body>
 </html>
+
+
+

@@ -4,7 +4,7 @@
     'param' => 'view',
 ])
 
-<div class="inline-flex rounded-full border border-moka-line bg-white p-1">
+<div class="inline-flex rounded-full border border-moka-line bg-moka-card p-1">
     @foreach($tabs as $key => $label)
         <a
             href="{{ request()->fullUrlWithQuery([$param => $key]) }}"
