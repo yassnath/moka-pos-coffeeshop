@@ -15,6 +15,7 @@
         <div class="hidden items-center gap-2 lg:flex">
             @if($user?->isAdmin())
                 <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Laporan</a>
+                <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Order</a>
                 <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Produk</a>
                 <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kategori</a>
                 <a href="{{ route('admin.addons.index') }}" class="{{ request()->routeIs('admin.addons.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Add-on</a>
@@ -48,6 +49,7 @@
         <div class="grid gap-2">
             @if($user?->isAdmin())
                 <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Laporan</a>
+                <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Order</a>
                 <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Produk</a>
                 <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Kategori</a>
                 <a href="{{ route('admin.addons.index') }}" class="{{ request()->routeIs('admin.addons.*') ? 'moka-chip moka-chip-active' : 'moka-chip' }}">Add-on</a>

@@ -7,15 +7,21 @@
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
     <style>
         :root {
-            color-scheme: light;
+            color-scheme: dark;
         }
 
         body {
             margin: 0;
-            padding: 20px;
-            background: #f5f1eb;
-            color: #2a2018;
+            min-height: 100vh;
+            padding: 24px;
+            color: #f5f5f5;
             font-family: "Sora", Arial, sans-serif;
+            background-color: #0f0f0f;
+            background-image:
+                radial-gradient(120% 68% at 50% -18%, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.08) 36%, rgba(212, 175, 55, 0) 72%),
+                radial-gradient(56% 38% at 12% 8%, rgba(199, 155, 46, 0.12) 0%, rgba(199, 155, 46, 0.04) 42%, rgba(199, 155, 46, 0) 80%),
+                radial-gradient(56% 38% at 88% 10%, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.04) 42%, rgba(212, 175, 55, 0) 80%),
+                linear-gradient(180deg, #0f0f0f 0%, #121212 58%, #0f0f0f 100%);
         }
 
         .receipt-shell {
@@ -42,9 +48,23 @@
             border: 1px solid #e7ded2;
         }
 
+        .brand-title {
+            margin: 8px 0 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #2a2018;
+        }
+
+        .brand-subtitle {
+            margin: 2px 0 0;
+            font-size: 12px;
+            color: #766454;
+        }
+
         .receipt-body {
             padding: 16px;
             font-size: 13px;
+            color: #2a2018;
         }
 
         .mono {
@@ -63,6 +83,41 @@
             margin: 4px 0;
         }
 
+        .row span:first-child,
+        .row span:last-child {
+            color: #2a2018;
+        }
+
+        .sub-row {
+            font-size: 12px;
+        }
+
+        .sub-row span {
+            color: #5f5043 !important;
+        }
+
+        .item-note {
+            font-size: 12px;
+            color: #5f5043;
+        }
+
+        .total-row {
+            margin-top: 6px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .total-row span {
+            color: #2a2018 !important;
+        }
+
+        .footer-note {
+            margin: 0;
+            text-align: center;
+            font-size: 12px;
+            color: #2a2018;
+        }
+
         .actions {
             max-width: 420px;
             margin: 12px auto 0;
@@ -78,19 +133,29 @@
             min-height: 42px;
             padding: 0 16px;
             border-radius: 999px;
-            border: 1px solid #dccdb9;
-            background: #fff;
-            color: #3f3126;
+            border: 1px solid #4b3a23;
+            background: #1a1a1a;
+            color: #f5f5f5;
             text-decoration: none;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: #c79b2e;
+            background: #222;
         }
 
         .btn-primary {
-            border-color: transparent;
-            background: #6f4e37;
-            color: #fff;
+            border-color: #c79b2e;
+            background: #d4af37;
+            color: #1a1408;
+        }
+
+        .btn-primary:hover {
+            background: #c79b2e;
         }
 
         @media print {
@@ -99,8 +164,13 @@
                 margin: 0;
             }
 
+            :root {
+                color-scheme: light;
+            }
+
             body {
                 background: #fff;
+                color: #111;
                 padding: 0;
             }
 
@@ -109,6 +179,26 @@
                 border: 0;
                 border-radius: 0;
                 box-shadow: none;
+                background: #fff;
+            }
+
+            .receipt-head,
+            .line {
+                border-color: #ccc;
+            }
+
+            .brand-title,
+            .row span:last-child,
+            .total-row span {
+                color: #111 !important;
+            }
+
+            .brand-subtitle,
+            .row span:first-child,
+            .sub-row span,
+            .item-note,
+            .footer-note {
+                color: #444 !important;
             }
 
             .actions {
@@ -121,8 +211,8 @@
     <div class="receipt-shell">
         <header class="receipt-head">
             <img src="{{ asset('logo.png') }}" alt="Logo">
-            <h2 style="margin:8px 0 0;font-size:18px;">Moka POS</h2>
-            <p style="margin:2px 0 0;font-size:12px;color:#766454;">Solvix Coffee Shop</p>
+            <h2 class="brand-title">Moka POS</h2>
+            <p class="brand-subtitle">Solvix Bar</p>
         </header>
         <section class="receipt-body mono">
             <div class="row"><span>Invoice</span><strong>{{ $order->invoice_no }}</strong></div>
@@ -142,13 +232,13 @@
                         <span>Rp {{ number_format((float) $item->line_total, 0, ',', '.') }}</span>
                     </div>
                     @foreach($item->addons as $addon)
-                        <div class="row" style="font-size:12px;color:#5f5043;">
+                        <div class="row sub-row">
                             <span>+ {{ $addon->name_snapshot }}</span>
                             <span>Rp {{ number_format((float) $addon->price, 0, ',', '.') }}</span>
                         </div>
                     @endforeach
                     @if($item->notes)
-                        <div style="font-size:12px;color:#5f5043;">Catatan: {{ $item->notes }}</div>
+                        <div class="item-note">Catatan: {{ $item->notes }}</div>
                     @endif
                 </div>
             @endforeach
@@ -159,7 +249,7 @@
             <div class="row"><span>Diskon</span><span>{{ $order->discount_type === 'percent' ? number_format((float) $order->discount_value, 2, ',', '.').'%' : 'Rp '.number_format((float) $order->discount_value, 0, ',', '.') }}</span></div>
             <div class="row"><span>Pajak</span><span>Rp {{ number_format((float) $order->tax, 0, ',', '.') }}</span></div>
             <div class="row"><span>Service</span><span>Rp {{ number_format((float) $order->service, 0, ',', '.') }}</span></div>
-            <div class="row" style="font-size:16px;font-weight:bold;">
+            <div class="row total-row">
                 <span>TOTAL</span>
                 <span>Rp {{ number_format((float) $order->total, 0, ',', '.') }}</span>
             </div>
@@ -169,7 +259,7 @@
             @endif
 
             <div class="line"></div>
-            <p style="margin:0;text-align:center;font-size:12px;">Terima kasih, selamat menikmati.</p>
+            <p class="footer-note">Terima kasih, selamat menikmati.</p>
         </section>
     </div>
 

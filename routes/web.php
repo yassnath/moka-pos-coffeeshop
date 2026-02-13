@@ -81,6 +81,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
 
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/void', [AdminOrderController::class, 'void'])->name('orders.void');
     });
