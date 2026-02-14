@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -65,6 +64,24 @@ class Product extends Model
             return $this->image_path;
         }
 
-        return '/storage/'.ltrim($this->image_path, '/');
+        $relativePath = ltrim((string) $this->image_path, '/');
+
+        // Primary source: storage/public with /storage symlink.
+        if (is_file(public_path('storage/'.$relativePath))) {
+            return asset('storage/'.$relativePath);
+        }
+
+        // Fallback: image exists directly in /public (used by seeded catalog assets).
+        if (is_file(public_path($relativePath))) {
+            return asset($relativePath);
+        }
+
+        $basename = basename($relativePath);
+
+        if (is_file(public_path($basename))) {
+            return asset($basename);
+        }
+
+        return null;
     }
 }
