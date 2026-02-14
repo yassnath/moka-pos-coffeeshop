@@ -13,7 +13,7 @@
 
     <script>
         window.setTimeout(() => {
-            window.location.href = @json(url('/'));
+            window.location.href = '{{ url('/') }}';
         }, 400);
     </script>
 </x-app-layout>

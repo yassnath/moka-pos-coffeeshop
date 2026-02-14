@@ -1,120 +1,53 @@
-# Moka POS Coffeeshop
+# Moka POS Bar
 
-Web POS modern untuk coffeeshop berbasis `Laravel 11 + Blade + Alpine.js` (tanpa SPA framework terpisah), dibuat agar cepat dipakai kasir dan nyaman dipantau admin.
+A premium web-based POS built for bars and beverage outlets, designed for speed at the cashier desk and clarity for business owners.
 
-## Kenapa Project Ini Menarik
-- UI modern ala Moka POS: clean, ringan, responsif untuk desktop/tablet/mobile.
-- Kasir-friendly: alur transaksi cepat, keyboard shortcut, dan checkout ringkas.
-- Siap operasional: role admin & kasir, open bill, pembayaran multi metode, cetak struk thermal.
-- Insight bisnis langsung jalan: omzet, modal, laba kotor, top menu, dan export CSV.
-- Efficient hosting: upload gambar produk otomatis dioptimasi (kompres/convert) agar bandwidth hemat dan preview tetap cepat.
+## What Makes This POS Stand Out
+- **Fast checkout flow** with keyboard-friendly interactions and touch-friendly controls.
+- **Modern premium UI** (Dark + Gold) that looks polished on desktop, tablet, and mobile.
+- **Role-based operations** so each team member sees only what they need.
+- **Real business insight** with revenue, cost, and gross profit tracking in one place.
+- **Production-ready architecture** on Laravel 11 + Blade + Alpine (no heavy SPA overhead).
 
-## Fitur Unggulan
-- `Auth + Role`
-  - Admin: kelola master data + laporan + void transaksi.
-  - Kasir: POS, riwayat transaksi milik sendiri, lanjutkan open bill milik sendiri.
-- `Master Data`
-  - Kategori, produk, varian, addon, metode pembayaran.
-  - Produk mendukung `harga jual` dan `harga modal`.
-  - Upload gambar produk (`jpg/jpeg/png/webp/svg`) dengan optimasi otomatis.
-- `POS Kasir`
-  - Search produk cepat (nama/SKU), kategori, kartu menu, cart interaktif.
-  - Add varian, addon, catatan item, qty stepper.
-  - Pajak default `10%` dan bisa diedit dari popup pembayaran.
-  - Open Bill:
-    - simpan/update order belum dibayar
-    - pakai ID internal (`Open Bill #ID`)
-    - lanjutkan ke pembayaran kapan saja
-- `Checkout & Receipt`
-  - Metode: Cash, QRIS, Debit, E-Wallet.
-  - Validasi backend + kalkulasi ulang total (tidak percaya total dari client).
-  - Invoice harian unik: `CS-YYYYMMDD-XXXX`.
-  - Receipt thermal 80mm + print dari browser.
-- `Laporan Admin`
-  - Total omzet, jumlah transaksi, laba kotor.
-  - Breakdown metode bayar.
-  - Top menu (dengan kolom modal).
-  - Daftar transaksi + modal/laba per transaksi.
-  - Export CSV.
+## Built For Real Outlet Operations
+### Admin
+- Full master-data control: categories, products, pricing, stock, payment methods, and staff.
+- Product image upload with automatic optimization/compression for faster load and lower bandwidth.
+- Dedicated order list with filtering, search, and quick actions.
+- Sales reporting with breakdown by payment method and top products.
+- CSV export for external finance workflows.
 
-## Tech Stack
-- `PHP 8.2+`
-- `Laravel 11`
-- `Laravel Breeze`
-- `Blade + Alpine.js`
-- `TailwindCSS`
-- `MySQL`
+### Cashier
+- Dedicated POS workspace focused on transaction speed.
+- Product search by name/code, category filtering, quantity controls, and item notes.
+- Open Bill workflow for unpaid tabs.
+- Complete payment flow and instant receipt printing.
 
-## Akun Default Seeder
-- Admin: `admin@coffeeshop.test` / `password`
-- Kasir: `kasir@coffeeshop.test` / `password`
+### Waiter
+- Can create and send orders to cashier flow.
+- Has its own order history to monitor submitted requests.
 
-## Cara Menjalankan Project
-1. Install dependency PHP:
-```bash
-composer install
-```
-2. Install dependency frontend:
-```bash
-npm install
-```
-3. Buat file env:
-```bash
-cp .env.example .env
-```
-4. Generate app key:
-```bash
-php artisan key:generate
-```
-5. Atur koneksi database MySQL di `.env`:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=nama_database
-DB_USERNAME=root
-DB_PASSWORD=
-```
-6. Migrate + seed data demo:
-```bash
-php artisan migrate --seed
-```
-7. Link storage publik:
-```bash
-php artisan storage:link
-```
-8. Jalankan app:
-```bash
-php artisan serve
-```
-9. Jalankan asset dev:
-```bash
-npm run dev
-```
+## Business Intelligence Included
+- Revenue tracking per transaction and date range.
+- Cost (modal) tracking from product level down to order level.
+- Automatic gross profit calculation.
+- Product performance visibility to identify top-selling items quickly.
 
-Untuk mode production build:
-```bash
-npm run build
-```
+## Key Product Capabilities
+- Invoice generation with daily unique sequence.
+- Multi-method payments (Cash, QRIS, Debit, E-Wallet).
+- Thermal receipt-ready output (80mm print layout).
+- Role-aware access control for safer operations.
+- Responsive data presentation, including card-based views on smaller screens.
 
-## Testing
-Jalankan semua feature test:
-```bash
-php artisan test --testsuite=Feature
-```
-
-## Catatan Print Thermal
-- Gunakan halaman receipt dan print via browser.
-- Pastikan printer thermal (USB/Bluetooth/LAN) sudah terpasang di device kasir.
-- Tidak menggunakan library print tambahan.
-
-## Keamanan Data Dasar
-- `.env`, `vendor`, `node_modules`, dan build cache sudah di-ignore pada `.gitignore`.
-- Jangan commit file kredensial.
+## Technical Foundation
+- Laravel 11
+- Blade Templates
+- Alpine.js
+- Tailwind CSS
+- MySQL
+- Laravel Breeze Authentication
 
 ---
-git remote add origin https://github.com/yassnath/moka-pos-coffeeshop.git
-git push -u origin main
-```
 
-Selesai. Setelah itu cukup `git add .`, `git commit -m "..."`, `git push` untuk update berikutnya.
+If you need a POS that looks premium, works fast under pressure, and gives owners clear numbers, this project is ready to deliver.
