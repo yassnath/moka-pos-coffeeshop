@@ -4,7 +4,33 @@
             <h1 class="font-display text-2xl font-bold text-moka-ink">Produk Menu</h1>
             <p class="text-sm text-moka-muted">Kelola menu, varian, stok, dan status aktif produk Bar.</p>
         </div>
-        <a href="{{ route('admin.products.create') }}" class="moka-btn">Tambah Produk</a>
+        <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <form method="GET" action="{{ route('admin.products.index') }}" class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
+                <div class="relative w-full sm:w-[320px]">
+                    <span class="pointer-events-none absolute inset-y-0 right-3 inline-flex items-center text-moka-muted">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="m21 21-4.35-4.35" stroke-width="1.8" stroke-linecap="round"></path>
+                            <circle cx="11" cy="11" r="6" stroke-width="1.8"></circle>
+                        </svg>
+                    </span>
+                    <input
+                        id="q"
+                        name="q"
+                        type="search"
+                        value="{{ $search }}"
+                        class="moka-input pr-10"
+                        placeholder="cari data"
+                    >
+                </div>
+                <button type="submit" class="moka-btn">Cari</button>
+                @if($search !== '')
+                    <a href="{{ route('admin.products.index', ['per_page' => $perPage]) }}" class="moka-btn-secondary">Reset</a>
+                @endif
+            </form>
+
+            <a href="{{ route('admin.products.create') }}" class="moka-btn">Tambah Produk</a>
+        </div>
     </x-slot>
 
     <div x-data="{
@@ -34,20 +60,35 @@
                     <p class="text-xs text-moka-muted">Pilih mode tabel atau kartu.</p>
                 </div>
 
-                <div class="inline-flex rounded-xl border border-moka-line bg-moka-card p-1">
-                    <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'table' ? 'bg-moka-primary text-[#1A1408]' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('table')" aria-label="Tampilan tabel">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M4 7h16M4 12h16M4 17h16" stroke-width="1.8" stroke-linecap="round"></path>
-                        </svg>
-                    </button>
-                    <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'card' ? 'bg-moka-primary text-[#1A1408]' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('card')" aria-label="Tampilan kartu">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <rect x="4" y="4" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
-                            <rect x="13" y="4" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
-                            <rect x="4" y="13" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
-                            <rect x="13" y="13" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
-                        </svg>
-                    </button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <form method="GET" action="{{ route('admin.products.index') }}" class="flex items-center gap-2">
+                        <input type="hidden" name="q" value="{{ $search }}">
+                        <label for="per_page" class="text-sm font-medium text-moka-muted">Tampilkan</label>
+                        <select id="per_page" name="per_page" class="moka-select h-10 w-[140px]" onchange="this.form.submit()">
+                            <option value="10" @selected((string) $perPage === '10')>10 data</option>
+                            <option value="15" @selected((string) $perPage === '15')>15 data</option>
+                            <option value="25" @selected((string) $perPage === '25')>25 data</option>
+                            <option value="50" @selected((string) $perPage === '50')>50 data</option>
+                            <option value="100" @selected((string) $perPage === '100')>100 data</option>
+                            <option value="all" @selected((string) $perPage === 'all')>Semua</option>
+                        </select>
+                    </form>
+
+                    <div class="inline-flex rounded-xl border border-moka-line bg-moka-card p-1">
+                        <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'table' ? 'bg-moka-primary text-[#1A1408]' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('table')" aria-label="Tampilan tabel">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M4 7h16M4 12h16M4 17h16" stroke-width="1.8" stroke-linecap="round"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg transition" :class="viewMode === 'card' ? 'bg-moka-primary text-[#1A1408]' : 'text-moka-muted hover:bg-moka-soft'" @click="setView('card')" aria-label="Tampilan kartu">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="4" y="4" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
+                                <rect x="13" y="4" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
+                                <rect x="4" y="13" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
+                                <rect x="13" y="13" width="7" height="7" rx="1.5" stroke-width="1.8"></rect>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </x-ui.card>
@@ -60,8 +101,8 @@
                             <th>Nama</th>
                             <th>SKU</th>
                             <th>Kategori</th>
-                            <th>Harga</th>
                             <th>Modal</th>
+                            <th>Harga</th>
                             <th>Stok</th>
                             <th>Status</th>
                             <th class="text-center">Aksi</th>
@@ -78,8 +119,8 @@
                                 </td>
                                 <td class="uppercase text-moka-muted">{{ $product->sku }}</td>
                                 <td>{{ $product->category?->name ?? '-' }}</td>
-                                <td class="text-money">Rp {{ number_format((float) $product->price, 0, ',', '.') }}</td>
                                 <td class="text-money">Rp {{ number_format((float) $product->cost_price, 0, ',', '.') }}</td>
+                                <td class="text-money">Rp {{ number_format((float) $product->price, 0, ',', '.') }}</td>
                                 <td>{{ $product->track_stock ? $product->stock_qty : 'Non-stok' }}</td>
                                 <td>
                                     <x-ui.badge :variant="$product->is_active ? 'success' : 'warning'">

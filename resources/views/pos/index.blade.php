@@ -99,7 +99,7 @@
                 <div class="inline-flex items-center gap-3">
                     <img src="{{ asset('logo.png') }}" alt="Moka POS" class="h-10 w-10 rounded-xl border border-moka-line object-cover">
                     <div>
-                        <p class="font-display text-base font-bold text-moka-ink">Moka POS - Solvix Coffee</p>
+                        <p class="font-display text-base font-bold text-moka-ink">Moka POS - Solvix Bar</p>
                         <p class="text-xs text-moka-muted">{{ $isWaiter ? 'Waiter Online' : 'Kasir Online' }}</p>
                     </div>
                 </div>
@@ -144,8 +144,8 @@
                 </aside>
                 <section class="soft-card flex h-full min-h-0 flex-col overflow-hidden md:col-span-1">
                     <div class="border-b border-moka-line p-4">
-                        <label for="search" class="moka-label">Cari menu / scan kode (tekan "/" untuk fokus)</label>
-                        <input id="search" x-ref="searchInput" type="text" x-model.debounce.100ms="search" class="moka-input" placeholder="Contoh: latte / CF-LAT">
+                        <label for="search" class="moka-label">Cari produk / scan kode (tekan "/" untuk fokus)</label>
+                        <input id="search" x-ref="searchInput" type="text" x-model.debounce.100ms="search" class="moka-input" placeholder="Contoh: ABSOLUTE VODKA / 91">
                     </div>
 
                     <div class="border-b border-moka-line p-3 xl:hidden">

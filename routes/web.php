@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\AddonController;
 use App\Http\Controllers\Admin\CashierController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -74,7 +73,6 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::resource('categories', CategoryController::class)->except(['show']);
         Route::resource('products', ProductController::class)->except(['show']);
-        Route::resource('addons', AddonController::class)->except(['show']);
         Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
         Route::resource('cashiers', CashierController::class)->except(['show']);
 

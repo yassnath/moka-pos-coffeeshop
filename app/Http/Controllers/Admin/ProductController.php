@@ -15,15 +15,53 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $products = Product::query()
+        $search = trim((string) $request->query('q', ''));
+
+        $perPage = (string) $request->query('per_page', '15');
+        $allowedPerPage = ['10', '15', '25', '50', '100', 'all'];
+
+        if (! in_array($perPage, $allowedPerPage, true)) {
+            $perPage = '15';
+        }
+
+        $productsQuery = Product::query()
+            ->where('is_active', true)
             ->with(['category:id,name', 'variants' => fn ($query) => $query->orderBy('name')])
-            ->orderBy('name')
-            ->paginate(15);
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($searchQuery) use ($search): void {
+                    $searchQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhereRaw('CAST(price AS CHAR) LIKE ?', ["%{$search}%"])
+                        ->orWhereRaw('CAST(cost_price AS CHAR) LIKE ?', ["%{$search}%"])
+                        ->orWhereRaw('CAST(stock_qty AS CHAR) LIKE ?', ["%{$search}%"])
+                        ->orWhereHas('category', function ($categoryQuery) use ($search): void {
+                            $categoryQuery->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('variants', function ($variantQuery) use ($search): void {
+                            $variantQuery->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->orderBy('name');
+
+        if ($perPage === 'all') {
+            $totalRows = (clone $productsQuery)->count();
+            $products = $productsQuery
+                ->paginate(max($totalRows, 1))
+                ->withQueryString();
+        } else {
+            $products = $productsQuery
+                ->paginate((int) $perPage)
+                ->withQueryString();
+        }
 
         return view('admin.products.index', [
             'products' => $products,
+            'perPage' => $perPage,
+            'search' => $search,
         ]);
     }
 

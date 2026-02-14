@@ -6,10 +6,11 @@ use App\Models\Addon;
 use App\Models\Category;
 use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class PosDemoSeeder extends Seeder
 {
@@ -18,7 +19,7 @@ class PosDemoSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::query()->updateOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'admin@coffeeshop.test'],
             [
                 'name' => 'Admin Bar',
@@ -28,7 +29,7 @@ class PosDemoSeeder extends Seeder
             ]
         );
 
-        $kasir = User::query()->updateOrCreate(
+        User::query()->updateOrCreate(
             ['email' => 'kasir@coffeeshop.test'],
             [
                 'name' => 'Kasir Bar',
@@ -58,82 +59,82 @@ class PosDemoSeeder extends Seeder
             ]
         );
 
-        $categories = [
-            'Coffee' => Category::query()->updateOrCreate(['name' => 'Coffee'], ['is_active' => true]),
-            'Non-Coffee' => Category::query()->updateOrCreate(['name' => 'Non-Coffee'], ['is_active' => true]),
-            'Snack' => Category::query()->updateOrCreate(['name' => 'Snack'], ['is_active' => true]),
-        ];
+        $catalog = $this->loadProductCatalog();
 
-        $products = [
-            ['name' => 'Americano', 'sku' => 'CF-AMR', 'category' => 'Coffee', 'price' => 22000, 'cost_price' => 11000, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Latte', 'sku' => 'CF-LAT', 'category' => 'Coffee', 'price' => 28000, 'cost_price' => 14500, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Cappuccino', 'sku' => 'CF-CAP', 'category' => 'Coffee', 'price' => 29000, 'cost_price' => 15000, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Es Kopi Gula Aren', 'sku' => 'CF-EGA', 'category' => 'Coffee', 'price' => 30000, 'cost_price' => 16000, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Mocha', 'sku' => 'CF-MOC', 'category' => 'Coffee', 'price' => 32000, 'cost_price' => 17500, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Matcha Latte', 'sku' => 'NC-MAT', 'category' => 'Non-Coffee', 'price' => 33000, 'cost_price' => 18500, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Chocolate', 'sku' => 'NC-CHO', 'category' => 'Non-Coffee', 'price' => 29000, 'cost_price' => 16000, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Lemon Tea', 'sku' => 'NC-LMT', 'category' => 'Non-Coffee', 'price' => 22000, 'cost_price' => 10000, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Croissant', 'sku' => 'SN-CRS', 'category' => 'Snack', 'price' => 19000, 'cost_price' => 11000, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-            ['name' => 'Cookies', 'sku' => 'SN-CKS', 'category' => 'Snack', 'price' => 15000, 'cost_price' => 9000, 'track_stock' => true, 'stock_qty' => 100, 'is_active' => true],
-        ];
+        DB::transaction(function () use ($catalog): void {
+            Addon::query()->update(['is_active' => false]);
+            Category::query()->update(['is_active' => false]);
+            Product::query()->update(['is_active' => false]);
 
-        $variantTargets = ['Latte', 'Cappuccino', 'Mocha', 'Matcha Latte', 'Chocolate'];
+            /** @var array<string, int> $categoryMap */
+            $categoryMap = [];
+            foreach ($catalog['categories'] as $categoryName) {
+                $category = Category::query()->updateOrCreate(
+                    ['name' => $categoryName],
+                    ['is_active' => true]
+                );
 
-        foreach ($products as $data) {
-            $product = Product::query()->updateOrCreate(
-                ['sku' => $data['sku']],
-                [
-                    'name' => $data['name'],
-                    'category_id' => $categories[$data['category']]->id,
-                    'price' => $data['price'],
-                    'cost_price' => $data['cost_price'],
-                    'track_stock' => $data['track_stock'],
-                    'stock_qty' => $data['stock_qty'],
-                    'is_active' => $data['is_active'],
-                    'image_path' => null,
-                ]
-            );
-
-            if (in_array($data['name'], $variantTargets, true)) {
-                $variants = [
-                    ['name' => 'Small', 'price_delta' => 0],
-                    ['name' => 'Medium', 'price_delta' => 3000],
-                    ['name' => 'Large', 'price_delta' => 6000],
-                ];
-
-                foreach ($variants as $variant) {
-                    ProductVariant::query()->updateOrCreate(
-                        [
-                            'product_id' => $product->id,
-                            'name' => $variant['name'],
-                        ],
-                        [
-                            'price' => null,
-                            'price_delta' => $variant['price_delta'],
-                            'is_active' => true,
-                        ]
-                    );
-                }
+                $categoryMap[$categoryName] = $category->id;
             }
-        }
 
-        $addons = [
-            ['name' => 'Extra Shot', 'price' => 7000],
-            ['name' => 'Oat Milk', 'price' => 6000],
-            ['name' => 'Caramel Syrup', 'price' => 5000],
-            ['name' => 'Vanilla Syrup', 'price' => 5000],
-            ['name' => 'Whipped Cream', 'price' => 4000],
-        ];
+            $publicImages = $this->buildPublicImageMap();
+            $importedSkus = [];
 
-        foreach ($addons as $addon) {
-            Addon::query()->updateOrCreate(
-                ['name' => $addon['name']],
-                [
-                    'price' => $addon['price'],
+            foreach ($catalog['products'] as $row) {
+                $sku = strtoupper(trim((string) ($row['sku'] ?? '')));
+                $name = trim((string) ($row['name'] ?? ''));
+                $categoryName = trim((string) ($row['category'] ?? ''));
+
+                if ($sku === '' || $name === '') {
+                    continue;
+                }
+
+                if (! isset($categoryMap[$categoryName])) {
+                    $category = Category::query()->updateOrCreate(
+                        ['name' => $categoryName !== '' ? $categoryName : 'Lainnya'],
+                        ['is_active' => true]
+                    );
+
+                    $categoryMap[$category->name] = $category->id;
+                    $categoryName = $category->name;
+                }
+
+                $product = Product::query()->firstOrNew(['sku' => $sku]);
+                if (! $product->exists) {
+                    $product->image_path = null;
+                }
+
+                $resolvedImagePath = $this->resolveProductImagePath($name, $publicImages);
+
+                $product->fill([
+                    'name' => $name,
+                    'category_id' => $categoryMap[$categoryName],
+                    'price' => max(0, (float) ($row['price'] ?? 0)),
+                    'cost_price' => max(0, (float) ($row['cost_price'] ?? 0)),
+                    'track_stock' => true,
+                    'stock_qty' => max(0, (int) ($row['stock_qty'] ?? 0)),
                     'is_active' => true,
-                ]
-            );
-        }
+                    'image_path' => $resolvedImagePath ?? $product->image_path,
+                ]);
+                $product->save();
+
+                $product->variants()->delete();
+                $importedSkus[] = $sku;
+            }
+
+            if ($importedSkus !== []) {
+                Product::query()
+                    ->whereNotIn('sku', $importedSkus)
+                    ->update(['is_active' => false]);
+            }
+
+            $importedCategoryNames = array_keys($categoryMap);
+            if ($importedCategoryNames !== []) {
+                Category::query()
+                    ->whereNotIn('name', $importedCategoryNames)
+                    ->update(['is_active' => false]);
+            }
+        });
 
         $methods = [
             ['name' => 'Cash', 'code' => 'cash'],
@@ -151,8 +152,116 @@ class PosDemoSeeder extends Seeder
                 ]
             );
         }
+    }
 
-        unset($admin, $kasir);
+    /**
+     * @return array<string, array{basename: string, path: string}>
+     */
+    private function buildPublicImageMap(): array
+    {
+        $pattern = base_path('public').DIRECTORY_SEPARATOR.'*.{png,jpg,jpeg,webp,svg}';
+        $files = glob($pattern, GLOB_BRACE) ?: [];
+
+        $map = [];
+
+        foreach ($files as $filePath) {
+            $basename = basename($filePath);
+            $nameOnly = pathinfo($basename, PATHINFO_FILENAME);
+            $key = $this->normalizeKey($nameOnly);
+
+            if ($key === '') {
+                continue;
+            }
+
+            $map[$key] = [
+                'basename' => $basename,
+                'path' => $filePath,
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param array<string, array{basename: string, path: string}> $publicImages
+     */
+    private function resolveProductImagePath(string $productName, array $publicImages): ?string
+    {
+        $productKey = $this->normalizeKey($productName);
+
+        $aliases = [
+            'absolutevodka' => 'absolutvodka',
+            'blueilusionpitcher' => 'blueilusionbypitcher',
+            'flaming' => 'flamming',
+            'hennessyvsop' => 'hennesyvsop',
+            'kratingdaeng' => 'krantingdaeng',
+            'marlboroiceburst' => 'malboroiceburst',
+            'paketkawa3botol' => 'paketkawakawa3botol',
+            'pokagreentea' => 'pokkagreentea',
+        ];
+
+        $lookupKey = $aliases[$productKey] ?? $productKey;
+
+        if (! isset($publicImages[$lookupKey])) {
+            return null;
+        }
+
+        $source = $publicImages[$lookupKey];
+        $relativePath = 'products/'.$source['basename'];
+
+        $binary = file_get_contents($source['path']);
+        if ($binary === false) {
+            return null;
+        }
+
+        Storage::disk('public')->put($relativePath, $binary);
+
+        return $relativePath;
+    }
+
+    private function normalizeKey(string $value): string
+    {
+        $value = mb_strtolower($value, 'UTF-8');
+        $value = preg_replace('/[^a-z0-9]+/u', '', $value) ?? '';
+
+        return $value;
+    }
+
+    /**
+     * @return array{categories: array<int, string>, products: array<int, array<string, mixed>>}
+     */
+    private function loadProductCatalog(): array
+    {
+        $file = database_path('data/product_catalog.php');
+        if (! file_exists($file)) {
+            throw new \RuntimeException('File katalog produk tidak ditemukan: '.$file);
+        }
+
+        /** @var mixed $catalog */
+        $catalog = require $file;
+        if (! is_array($catalog)) {
+            throw new \RuntimeException('Format file katalog produk tidak valid.');
+        }
+
+        $categories = array_values(array_filter(
+            array_map(static fn ($item) => trim((string) $item), $catalog['categories'] ?? []),
+            static fn ($item) => $item !== ''
+        ));
+
+        $products = array_values(array_filter(
+            $catalog['products'] ?? [],
+            static fn ($row) => is_array($row)
+                && trim((string) ($row['name'] ?? '')) !== ''
+                && trim((string) ($row['sku'] ?? '')) !== ''
+        ));
+
+        if ($products === []) {
+            throw new \RuntimeException('Data produk kosong di katalog.');
+        }
+
+        return [
+            'categories' => $categories,
+            'products' => $products,
+        ];
     }
 }
-
